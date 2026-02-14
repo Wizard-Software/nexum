@@ -11,4 +11,8 @@
     <ProjectReference Include="..\..\src\Nexum.SourceGenerators\Nexum.SourceGenerators.csproj" OutputItemType="" ReferenceOutputAssembly="true" />
   </ItemGroup>
 
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
 </Project>

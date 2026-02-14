@@ -6,4 +6,43 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
+
+  <!-- NuGet package metadata -->
+  <PropertyGroup>
+    <Authors>Artur Sawicki</Authors>
+    <Company>Wizard Software</Company>
+    <Product>Nexum</Product>
+    <Copyright>Copyright © $(Authors) $([System.DateTime]::UtcNow.Year)</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/asawicki/nexum</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/asawicki/nexum.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>cqrs;mediator;commands;queries;notifications;source-generators;dotnet</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <!-- Versioning -->
+  <PropertyGroup>
+    <VersionPrefix>0.9.0</VersionPrefix>
+  </PropertyGroup>
+
+  <!-- Deterministic builds & SourceLink -->
+  <PropertyGroup>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Package assets: README and LICENSE -->
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
+    <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="\" />
+  </ItemGroup>
 </Project>

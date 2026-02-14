@@ -13,6 +13,7 @@ public static class NexumEndpointRouteBuilderExtensions
     /// <summary>
     /// Maps a POST endpoint that dispatches a command with a result.
     /// The command is deserialized from the request body.
+    /// Automatically adds OpenAPI metadata: <c>Produces&lt;TResult&gt;(200)</c> and <c>ProducesProblem(400)</c>.
     /// </summary>
     /// <typeparam name="TCommand">The command type.</typeparam>
     /// <typeparam name="TResult">The result type.</typeparam>
@@ -31,12 +32,16 @@ public static class NexumEndpointRouteBuilderExtensions
         {
             TResult result = await dispatcher.DispatchAsync(command, ct).ConfigureAwait(false);
             return Results.Ok(result);
-        });
+        })
+        .WithName(DeriveEndpointName<TCommand>())
+        .Produces<TResult>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest);
     }
 
     /// <summary>
     /// Maps a POST endpoint that dispatches a void command (returns 204 No Content).
     /// The command is deserialized from the request body.
+    /// Automatically adds OpenAPI metadata: <c>Produces(204)</c> and <c>ProducesProblem(400)</c>.
     /// </summary>
     /// <typeparam name="TCommand">The void command type.</typeparam>
     /// <param name="endpoints">The endpoint route builder.</param>
@@ -54,12 +59,16 @@ public static class NexumEndpointRouteBuilderExtensions
         {
             await dispatcher.DispatchAsync(command, ct).ConfigureAwait(false);
             return Results.NoContent();
-        });
+        })
+        .WithName(DeriveEndpointName<TCommand>())
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesProblem(StatusCodes.Status400BadRequest);
     }
 
     /// <summary>
     /// Maps a GET endpoint that dispatches a query and returns the result.
     /// The query is constructed from route and query string parameters via <c>[AsParameters]</c>.
+    /// Automatically adds OpenAPI metadata: <c>Produces&lt;TResult&gt;(200)</c> and <c>ProducesProblem(400)</c>.
     /// </summary>
     /// <typeparam name="TQuery">The query type.</typeparam>
     /// <typeparam name="TResult">The result type.</typeparam>
@@ -87,6 +96,30 @@ public static class NexumEndpointRouteBuilderExtensions
         {
             TResult result = await dispatcher.DispatchAsync(query, ct).ConfigureAwait(false);
             return Results.Ok(result);
-        });
+        })
+        .WithName(DeriveEndpointName<TQuery>())
+        .Produces<TResult>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest);
+    }
+
+    /// <summary>
+    /// Derives an endpoint name from a type by stripping "Command" or "Query" suffix.
+    /// For example, <c>CreateOrderCommand</c> becomes <c>CreateOrder</c>.
+    /// </summary>
+    private static string DeriveEndpointName<T>()
+    {
+        string typeName = typeof(T).Name;
+
+        if (typeName.EndsWith("Command", StringComparison.Ordinal))
+        {
+            return typeName[..^"Command".Length];
+        }
+
+        if (typeName.EndsWith("Query", StringComparison.Ordinal))
+        {
+            return typeName[..^"Query".Length];
+        }
+
+        return typeName;
     }
 }

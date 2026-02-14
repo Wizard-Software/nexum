@@ -68,5 +68,23 @@ namespace Nexum.SourceGenerators
             defaultSeverity: DiagnosticSeverity.Info,
             isEnabledByDefault: true,
             helpLinkUri: "https://github.com/asawicki/Nexum");
+
+        public static readonly DiagnosticDescriptor NEXUM008_EndpointOnNonMessageType = new(
+            id: "NEXUM008",
+            title: "NexumEndpoint attribute on type not implementing ICommand or IQuery",
+            messageFormat: "Type '{0}' has [NexumEndpoint] attribute but does not implement ICommand<T> or IQuery<T>. The endpoint will not be generated.",
+            category: "Nexum.SourceGenerators",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            helpLinkUri: "https://github.com/asawicki/Nexum");
+
+        public static readonly DiagnosticDescriptor NEXUM009_DuplicateEndpointRoute = new(
+            id: "NEXUM009",
+            title: "Duplicate endpoint route pattern",
+            messageFormat: "Duplicate endpoint route: {0} '{1}' is defined on both '{2}' and '{3}'",
+            category: "Nexum.SourceGenerators",
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true,
+            helpLinkUri: "https://github.com/asawicki/Nexum");
     }
 }

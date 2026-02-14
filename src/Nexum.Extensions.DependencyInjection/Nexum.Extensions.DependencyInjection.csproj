@@ -1,6 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <Description>MSDI integration for Nexum. Provides AddNexum() with compile-time Source Generator acceleration.</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
@@ -12,6 +13,14 @@
   <ItemGroup>
     <ProjectReference Include="..\Nexum\Nexum.csproj" />
     <ProjectReference Include="..\Nexum.SourceGenerators\Nexum.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- Pack Nexum.SourceGenerators.dll + targets for transitive analyzer delivery -->
+  <ItemGroup>
+    <None Include="../Nexum.SourceGenerators/bin/$(Configuration)/netstandard2.0/Nexum.SourceGenerators.dll"
+          Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="buildTransitive/Nexum.Extensions.DependencyInjection.targets" Pack="true" PackagePath="buildTransitive/" />
+    <None Include="buildTransitive/Nexum.Extensions.DependencyInjection.targets" Pack="true" PackagePath="build/" />
   </ItemGroup>
 
 </Project>

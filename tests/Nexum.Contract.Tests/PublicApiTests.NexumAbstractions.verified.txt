@@ -103,10 +103,27 @@
         public NexumDispatchDepthExceededException(int maxDepth) { }
         public int MaxDepth { get; }
     }
+    [System.AttributeUsage(System.AttributeTargets.Class, Inherited=false)]
+    public sealed class NexumEndpointAttribute : System.Attribute
+    {
+        public NexumEndpointAttribute(Nexum.Abstractions.NexumHttpMethod method, string pattern) { }
+        public string? GroupName { get; set; }
+        public Nexum.Abstractions.NexumHttpMethod Method { get; }
+        public string? Name { get; set; }
+        public string Pattern { get; }
+    }
     public sealed class NexumHandlerNotFoundException : System.InvalidOperationException
     {
         public NexumHandlerNotFoundException(System.Type requestType, string handlerInterfaceName) { }
         public System.Type RequestType { get; }
+    }
+    public enum NexumHttpMethod
+    {
+        Get = 0,
+        Post = 1,
+        Put = 2,
+        Delete = 3,
+        Patch = 4,
     }
     public enum NexumLifetime
     {
