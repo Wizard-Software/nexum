@@ -1,0 +1,78 @@
+# Documentation (managed separately)
+docs/
+
+## .NET ##
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# Rider
+.idea/
+*.sln.iml
+
+# Build results
+[Dd]ebugPublic/
+[Rr]eleases/
+**/[Pp]roperties/launchSettings.json
+*.appx
+*.appxbundle
+*.appxupload
+
+# NuGet
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nupkg
+**/packages/**/repositories.config
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# .NET Core
+project.assets.json
+
+# User-specific files
+*.user
+*.dbmdl
+*.jfm
+
+# Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+TestResult.xml
+[Dd]ebugPS/
+
+# BenchmarkDotNet
+BenchmarkDotNet.Artifacts/
+
+# Coverage
+coverage*/
+*.coverage
+*.coveragexml
+*.opencover.xml
+
+# AI tools
+.claude/
+.serena/
+CLAUDE.md
+.mcp.json
+
+
+# OS files
+.DS_Store
+Thumbs.db

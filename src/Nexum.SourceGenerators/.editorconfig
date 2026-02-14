@@ -1,0 +1,25 @@
+# Source Generators — netstandard2.0 compatibility overrides
+# Relaxes C# 14 rules that are incompatible with C# <= 12 / netstandard2.0
+
+[*.cs]
+
+# Disable file-scoped namespaces (requires C# 10)
+csharp_style_namespace_declarations = block_scoped:silent
+
+# Disable primary constructors (requires C# 12)
+csharp_style_prefer_primary_constructors = false:silent
+
+# Disable collection expressions (requires C# 12)
+dotnet_style_prefer_collection_expression = false:silent
+
+# Disable UTF-8 string literals (requires C# 11)
+csharp_style_prefer_utf8_string_literals = false:silent
+
+# Disable extended property pattern (requires C# 10)
+csharp_style_prefer_extended_property_pattern = false:silent
+
+# Disable tuple swap (requires C# 10)
+csharp_style_prefer_tuple_swap = false:silent
+
+# Suppress generated code analysis false positives
+generated_code = false

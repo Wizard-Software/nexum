@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+<ItemGroup>
+    <ProjectReference Include="..\..\src\Nexum.Abstractions\Nexum.Abstractions.csproj" />
+  </ItemGroup>
+</Project>

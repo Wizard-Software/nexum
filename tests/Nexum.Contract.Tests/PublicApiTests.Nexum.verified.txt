@@ -1,0 +1,37 @@
+﻿namespace Nexum
+{
+    public sealed class CommandDispatcher : Nexum.Abstractions.ICommandDispatcher, Nexum.IInterceptableDispatcher
+    {
+        public CommandDispatcher(System.IServiceProvider serviceProvider, Nexum.NexumOptions options) { }
+        public System.Threading.Tasks.ValueTask<TResult> DispatchAsync<TResult>(Nexum.Abstractions.ICommand<TResult> command, System.Threading.CancellationToken ct = default) { }
+    }
+    public interface IInterceptableDispatcher
+    {
+        System.Threading.Tasks.ValueTask<TResult> DispatchInterceptedCommandAsync<TCommand, TResult>(TCommand command, System.Func<TCommand, System.IServiceProvider, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<TResult>> compiledPipeline, System.Threading.CancellationToken ct)
+            where TCommand : Nexum.Abstractions.ICommand<TResult>;
+        System.Threading.Tasks.ValueTask<TResult> DispatchInterceptedQueryAsync<TQuery, TResult>(TQuery query, System.Func<TQuery, System.IServiceProvider, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<TResult>> compiledPipeline, System.Threading.CancellationToken ct)
+            where TQuery : Nexum.Abstractions.IQuery<TResult>;
+        System.Collections.Generic.IAsyncEnumerable<TResult> StreamInterceptedAsync<TQuery, TResult>(TQuery query, System.Func<TQuery, System.IServiceProvider, System.Threading.CancellationToken, System.Collections.Generic.IAsyncEnumerable<TResult>> compiledPipeline, System.Threading.CancellationToken ct)
+            where TQuery : Nexum.Abstractions.IStreamQuery<TResult>;
+    }
+    public sealed class NexumOptions
+    {
+        public NexumOptions() { }
+        public Nexum.Abstractions.PublishStrategy DefaultPublishStrategy { get; set; }
+        public int FireAndForgetChannelCapacity { get; set; }
+        public System.TimeSpan FireAndForgetDrainTimeout { get; set; }
+        public System.TimeSpan FireAndForgetTimeout { get; set; }
+        public int MaxDispatchDepth { get; set; }
+    }
+    public sealed class NotificationPublisher : Nexum.Abstractions.INotificationPublisher
+    {
+        public System.Threading.Tasks.ValueTask PublishAsync<TNotification>(TNotification notification, Nexum.Abstractions.PublishStrategy? strategy = default, System.Threading.CancellationToken ct = default)
+            where TNotification : Nexum.Abstractions.INotification { }
+    }
+    public sealed class QueryDispatcher : Nexum.Abstractions.IQueryDispatcher, Nexum.IInterceptableDispatcher
+    {
+        public QueryDispatcher(System.IServiceProvider serviceProvider, Nexum.NexumOptions options) { }
+        public System.Threading.Tasks.ValueTask<TResult> DispatchAsync<TResult>(Nexum.Abstractions.IQuery<TResult> query, System.Threading.CancellationToken ct = default) { }
+        public System.Collections.Generic.IAsyncEnumerable<TResult> StreamAsync<TResult>(Nexum.Abstractions.IStreamQuery<TResult> query, System.Threading.CancellationToken ct = default) { }
+    }
+}

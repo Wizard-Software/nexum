@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Nexum.Extensions.DependencyInjection\Nexum.Extensions.DependencyInjection.csproj" />
+    <ProjectReference Include="..\Nexum.Extensions.DependencyInjection.Tests.Fakes\Nexum.Extensions.DependencyInjection.Tests.Fakes.csproj" />
+  </ItemGroup>
+</Project>

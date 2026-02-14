@@ -1,0 +1,18 @@
+﻿{
+  Diagnostics: [
+    {
+      Message: Interceptor generated for streamquery dispatch of 'TestApp.StreamOrdersQuery' at generated:0,
+      Severity: Info,
+      WarningLevel: 1,
+      Descriptor: {
+        Id: NEXUM005,
+        Title: Interceptor generated for dispatch call-site,
+        HelpLink: https://github.com/asawicki/Nexum,
+        MessageFormat: Interceptor generated for {0} dispatch of '{1}' at {2}:{3},
+        Category: Nexum.SourceGenerators,
+        DefaultSeverity: Info,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <PublishAot>true</PublishAot>
+    <IsAotCompatible>true</IsAotCompatible>
+    <!-- Suppress known NativeAOT warnings from Nexum runtime path (MakeGenericType in CommandDispatcher/PolymorphicHandlerResolver).
+         Smoke test verifies SG registration + AOT publish works; full AOT-safe dispatch is a future task. -->
+    <NoWarn>$(NoWarn);IL2055;IL2066;IL2070;IL2072;IL2080;IL3050</NoWarn>
+    <IsTestProject>false</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Enable interceptors for Tier 3 source generation -->
+    <InterceptorsNamespaces>$(InterceptorsNamespaces);Nexum.NativeAot.SmokeTest.Generated</InterceptorsNamespaces>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Nexum\Nexum.csproj" />
+    <ProjectReference Include="..\..\src\Nexum.Abstractions\Nexum.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Nexum.SourceGenerators\Nexum.SourceGenerators.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+</Project>

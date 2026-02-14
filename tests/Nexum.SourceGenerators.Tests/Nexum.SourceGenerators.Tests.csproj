@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Verify.SourceGenerators" />
+    <PackageReference Include="Verify.XunitV3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Nexum.Abstractions\Nexum.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Nexum.SourceGenerators\Nexum.SourceGenerators.csproj" OutputItemType="" ReferenceOutputAssembly="true" />
+  </ItemGroup>
+
+</Project>

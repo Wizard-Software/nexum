@@ -1,0 +1,50 @@
+﻿namespace Nexum.Results
+{
+    public class NexumError : System.IEquatable<Nexum.Results.NexumError>
+    {
+        public NexumError(string Code, string Message, System.Exception? InnerException = null) { }
+        public string Code { get; init; }
+        public System.Exception? InnerException { get; init; }
+        public string Message { get; init; }
+    }
+    public sealed class NexumResultAdapter<TValue> : Nexum.Abstractions.IResultAdapter<Nexum.Results.Result<TValue>>
+    {
+        public NexumResultAdapter() { }
+        public object? GetError(Nexum.Results.Result<TValue> result) { }
+        public object? GetValue(Nexum.Results.Result<TValue> result) { }
+        public bool IsSuccess(Nexum.Results.Result<TValue> result) { }
+    }
+    public sealed class NexumResultAdapter<TValue, TError> : Nexum.Abstractions.IResultAdapter<Nexum.Results.Result<TValue, TError>>
+    {
+        public NexumResultAdapter() { }
+        public object? GetError(Nexum.Results.Result<TValue, TError> result) { }
+        public object? GetValue(Nexum.Results.Result<TValue, TError> result) { }
+        public bool IsSuccess(Nexum.Results.Result<TValue, TError> result) { }
+    }
+    public readonly struct Result<TValue>
+    {
+        public Nexum.Results.NexumError Error { get; }
+        public bool IsFailure { get; }
+        public bool IsSuccess { get; }
+        public TValue Value { get; }
+        public Nexum.Results.Result<TNew> Bind<TNew>(System.Func<TValue, Nexum.Results.Result<TNew>> binder) { }
+        public TValue GetValueOrDefault(TValue fallback) { }
+        public Nexum.Results.Result<TNew> Map<TNew>(System.Func<TValue, TNew> mapper) { }
+        public static Nexum.Results.Result<TValue> Fail(Nexum.Results.NexumError error) { }
+        public static Nexum.Results.Result<TValue> Ok(TValue value) { }
+        public static Nexum.Results.Result<TValue, Nexum.Results.NexumError> op_Implicit(Nexum.Results.Result<TValue> result) { }
+        public static Nexum.Results.Result<TValue> op_Implicit(Nexum.Results.Result<TValue, Nexum.Results.NexumError> inner) { }
+    }
+    public readonly struct Result<TValue, TError>
+    {
+        public TError Error { get; }
+        public bool IsFailure { get; }
+        public bool IsSuccess { get; }
+        public TValue Value { get; }
+        public Nexum.Results.Result<TNew, TError> Bind<TNew>(System.Func<TValue, Nexum.Results.Result<TNew, TError>> binder) { }
+        public TValue GetValueOrDefault(TValue fallback) { }
+        public Nexum.Results.Result<TNew, TError> Map<TNew>(System.Func<TValue, TNew> mapper) { }
+        public static Nexum.Results.Result<TValue, TError> Fail(TError error) { }
+        public static Nexum.Results.Result<TValue, TError> Ok(TValue value) { }
+    }
+}

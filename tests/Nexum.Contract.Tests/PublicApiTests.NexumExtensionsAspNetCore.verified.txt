@@ -1,0 +1,26 @@
+﻿namespace Nexum.Extensions.AspNetCore
+{
+    public static class NexumApplicationBuilderExtensions
+    {
+        public static Microsoft.AspNetCore.Builder.IApplicationBuilder UseNexum(this Microsoft.AspNetCore.Builder.IApplicationBuilder app) { }
+    }
+    public static class NexumAspNetCoreServiceCollectionExtensions
+    {
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddNexumAspNetCore(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<Nexum.Extensions.AspNetCore.NexumProblemDetailsOptions>? configure = null) { }
+    }
+    public static class NexumEndpointRouteBuilderExtensions
+    {
+        public static Microsoft.AspNetCore.Builder.RouteHandlerBuilder MapNexumCommand<TCommand>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string pattern)
+            where TCommand : Nexum.Abstractions.IVoidCommand { }
+        public static Microsoft.AspNetCore.Builder.RouteHandlerBuilder MapNexumCommand<TCommand, TResult>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string pattern)
+            where TCommand : Nexum.Abstractions.ICommand<TResult> { }
+        public static Microsoft.AspNetCore.Builder.RouteHandlerBuilder MapNexumQuery<TQuery, TResult>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string pattern)
+            where TQuery : Nexum.Abstractions.IQuery<TResult> { }
+    }
+    public sealed class NexumProblemDetailsOptions
+    {
+        public NexumProblemDetailsOptions() { }
+        public System.Collections.Generic.Dictionary<System.Type, System.Func<System.Exception, Microsoft.AspNetCore.Mvc.ProblemDetails?>> ExceptionMappings { get; }
+        public bool IncludeExceptionDetails { get; set; }
+    }
+}

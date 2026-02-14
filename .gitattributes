@@ -1,0 +1,12 @@
+# Auto-detect text files and ensure LF line endings
+* text=auto eol=lf
+
+# Solution files
+*.slnx text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.zip binary

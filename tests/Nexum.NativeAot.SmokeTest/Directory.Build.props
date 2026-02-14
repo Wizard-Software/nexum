@@ -1,0 +1,4 @@
+<Project>
+  <!-- Import root Directory.Build.props directly, skipping tests/Directory.Build.props -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../../'))" />
+</Project>

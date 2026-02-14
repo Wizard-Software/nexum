@@ -1,0 +1,14 @@
+﻿namespace Nexum.OpenTelemetry
+{
+    public sealed class NexumTelemetryOptions
+    {
+        public NexumTelemetryOptions() { }
+        public string ActivitySourceName { get; set; }
+        public bool EnableMetrics { get; set; }
+        public bool EnableTracing { get; set; }
+    }
+    public static class NexumTelemetryServiceCollectionExtensions
+    {
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddNexumTelemetry(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<Nexum.OpenTelemetry.NexumTelemetryOptions>? configure = null) { }
+    }
+}

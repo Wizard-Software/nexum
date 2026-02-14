@@ -1,0 +1,152 @@
+﻿namespace Nexum.Abstractions
+{
+    [System.AttributeUsage(System.AttributeTargets.Class, Inherited=false)]
+    public sealed class BehaviorOrderAttribute : System.Attribute
+    {
+        public BehaviorOrderAttribute(int order) { }
+        public int Order { get; }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Class, Inherited=false)]
+    public sealed class CommandHandlerAttribute : System.Attribute
+    {
+        public CommandHandlerAttribute() { }
+    }
+    public delegate System.Threading.Tasks.ValueTask<TResult> CommandHandlerDelegate<TResult>(System.Threading.CancellationToken ct);
+    [System.AttributeUsage(System.AttributeTargets.Class, Inherited=false)]
+    public sealed class HandlerLifetimeAttribute : System.Attribute
+    {
+        public HandlerLifetimeAttribute(Nexum.Abstractions.NexumLifetime lifetime) { }
+        public Nexum.Abstractions.NexumLifetime Lifetime { get; }
+    }
+    public interface ICommand { }
+    public interface ICommandBehavior<in TCommand, TResult>
+        where in TCommand : Nexum.Abstractions.ICommand<TResult>
+    {
+        System.Threading.Tasks.ValueTask<TResult> HandleAsync(TCommand command, Nexum.Abstractions.CommandHandlerDelegate<TResult> next, System.Threading.CancellationToken ct = default);
+    }
+    public interface ICommandDispatcher
+    {
+        System.Threading.Tasks.ValueTask<TResult> DispatchAsync<TResult>(Nexum.Abstractions.ICommand<TResult> command, System.Threading.CancellationToken ct = default);
+    }
+    public interface ICommandExceptionHandler<in TCommand, in TException>
+        where in TCommand : Nexum.Abstractions.ICommand
+        where in TException : System.Exception
+    {
+        System.Threading.Tasks.ValueTask HandleAsync(TCommand command, TException exception, System.Threading.CancellationToken ct = default);
+    }
+    public interface ICommandHandler<in TCommand, TResult>
+        where in TCommand : Nexum.Abstractions.ICommand<TResult>
+    {
+        System.Threading.Tasks.ValueTask<TResult> HandleAsync(TCommand command, System.Threading.CancellationToken ct = default);
+    }
+    public interface ICommand<out TResult> : Nexum.Abstractions.ICommand { }
+    public interface INotification { }
+    public interface INotificationExceptionHandler<in TNotification, in TException>
+        where in TNotification : Nexum.Abstractions.INotification
+        where in TException : System.Exception
+    {
+        System.Threading.Tasks.ValueTask HandleAsync(TNotification notification, TException exception, System.Threading.CancellationToken ct = default);
+    }
+    public interface INotificationHandler<in TNotification>
+        where in TNotification : Nexum.Abstractions.INotification
+    {
+        System.Threading.Tasks.ValueTask HandleAsync(TNotification notification, System.Threading.CancellationToken ct = default);
+    }
+    public interface INotificationPublisher
+    {
+        System.Threading.Tasks.ValueTask PublishAsync<TNotification>(TNotification notification, Nexum.Abstractions.PublishStrategy? strategy = default, System.Threading.CancellationToken ct = default)
+            where TNotification : Nexum.Abstractions.INotification;
+    }
+    public interface IQuery { }
+    public interface IQueryBehavior<in TQuery, TResult>
+        where in TQuery : Nexum.Abstractions.IQuery<TResult>
+    {
+        System.Threading.Tasks.ValueTask<TResult> HandleAsync(TQuery query, Nexum.Abstractions.QueryHandlerDelegate<TResult> next, System.Threading.CancellationToken ct = default);
+    }
+    public interface IQueryDispatcher
+    {
+        System.Threading.Tasks.ValueTask<TResult> DispatchAsync<TResult>(Nexum.Abstractions.IQuery<TResult> query, System.Threading.CancellationToken ct = default);
+        System.Collections.Generic.IAsyncEnumerable<TResult> StreamAsync<TResult>(Nexum.Abstractions.IStreamQuery<TResult> query, System.Threading.CancellationToken ct = default);
+    }
+    public interface IQueryExceptionHandler<in TQuery, in TException>
+        where in TQuery : Nexum.Abstractions.IQuery
+        where in TException : System.Exception
+    {
+        System.Threading.Tasks.ValueTask HandleAsync(TQuery query, TException exception, System.Threading.CancellationToken ct = default);
+    }
+    public interface IQueryHandler<in TQuery, TResult>
+        where in TQuery : Nexum.Abstractions.IQuery<TResult>
+    {
+        System.Threading.Tasks.ValueTask<TResult> HandleAsync(TQuery query, System.Threading.CancellationToken ct = default);
+    }
+    public interface IQuery<out TResult> : Nexum.Abstractions.IQuery { }
+    public interface IResultAdapter<in TResult>
+    {
+        object? GetError(TResult result);
+        object? GetValue(TResult result);
+        bool IsSuccess(TResult result);
+    }
+    public interface IStreamQueryBehavior<in TQuery, TResult>
+        where in TQuery : Nexum.Abstractions.IStreamQuery<TResult>
+    {
+        System.Collections.Generic.IAsyncEnumerable<TResult> HandleAsync(TQuery query, Nexum.Abstractions.StreamQueryHandlerDelegate<TResult> next, System.Threading.CancellationToken ct = default);
+    }
+    public interface IStreamQueryHandler<in TQuery, TResult>
+        where in TQuery : Nexum.Abstractions.IStreamQuery<TResult>
+    {
+        System.Collections.Generic.IAsyncEnumerable<TResult> HandleAsync(TQuery query, System.Threading.CancellationToken ct = default);
+    }
+    public interface IStreamQuery<out TResult> { }
+    public interface IVoidCommand : Nexum.Abstractions.ICommand, Nexum.Abstractions.ICommand<Nexum.Abstractions.Unit> { }
+    public sealed class NexumDispatchDepthExceededException : System.InvalidOperationException
+    {
+        public NexumDispatchDepthExceededException(int maxDepth) { }
+        public int MaxDepth { get; }
+    }
+    public sealed class NexumHandlerNotFoundException : System.InvalidOperationException
+    {
+        public NexumHandlerNotFoundException(System.Type requestType, string handlerInterfaceName) { }
+        public System.Type RequestType { get; }
+    }
+    public enum NexumLifetime
+    {
+        Transient = 0,
+        Scoped = 1,
+        Singleton = 2,
+    }
+    [System.AttributeUsage(System.AttributeTargets.Class, Inherited=false)]
+    public sealed class NotificationHandlerAttribute : System.Attribute
+    {
+        public NotificationHandlerAttribute() { }
+    }
+    public enum PublishStrategy
+    {
+        Sequential = 0,
+        Parallel = 1,
+        StopOnException = 2,
+        FireAndForget = 3,
+    }
+    [System.AttributeUsage(System.AttributeTargets.Class, Inherited=false)]
+    public sealed class QueryHandlerAttribute : System.Attribute
+    {
+        public QueryHandlerAttribute() { }
+    }
+    public delegate System.Threading.Tasks.ValueTask<TResult> QueryHandlerDelegate<TResult>(System.Threading.CancellationToken ct);
+    [System.AttributeUsage(System.AttributeTargets.Class, Inherited=false)]
+    public sealed class StreamQueryHandlerAttribute : System.Attribute
+    {
+        public StreamQueryHandlerAttribute() { }
+    }
+    public delegate System.Collections.Generic.IAsyncEnumerable<TResult> StreamQueryHandlerDelegate<TResult>(System.Threading.CancellationToken ct);
+    public readonly struct Unit : System.IComparable<Nexum.Abstractions.Unit>, System.IEquatable<Nexum.Abstractions.Unit>
+    {
+        public static readonly Nexum.Abstractions.Unit Value;
+        public int CompareTo(Nexum.Abstractions.Unit other) { }
+        public bool Equals(Nexum.Abstractions.Unit other) { }
+        public override bool Equals(object? obj) { }
+        public override int GetHashCode() { }
+        public override string ToString() { }
+        public static bool operator !=(Nexum.Abstractions.Unit left, Nexum.Abstractions.Unit right) { }
+        public static bool operator ==(Nexum.Abstractions.Unit left, Nexum.Abstractions.Unit right) { }
+    }
+}

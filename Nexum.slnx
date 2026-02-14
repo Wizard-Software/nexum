@@ -1,0 +1,26 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Nexum.Abstractions/Nexum.Abstractions.csproj" />
+    <Project Path="src/Nexum.Extensions.AspNetCore/Nexum.Extensions.AspNetCore.csproj" />
+    <Project Path="src/Nexum.Extensions.DependencyInjection/Nexum.Extensions.DependencyInjection.csproj" />
+    <Project Path="src/Nexum.OpenTelemetry/Nexum.OpenTelemetry.csproj" />
+    <Project Path="src/Nexum.Results/Nexum.Results.csproj" />
+    <Project Path="src/Nexum/Nexum.csproj" />
+    <Project Path="src/Nexum.SourceGenerators/Nexum.SourceGenerators.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Nexum.Abstractions.Tests/Nexum.Abstractions.Tests.csproj" />
+    <Project Path="tests/Nexum.Extensions.AspNetCore.Tests/Nexum.Extensions.AspNetCore.Tests.csproj" />
+    <Project Path="tests/Nexum.Extensions.DependencyInjection.Tests/Nexum.Extensions.DependencyInjection.Tests.csproj" />
+    <Project Path="tests/Nexum.Extensions.DependencyInjection.Tests.Fakes/Nexum.Extensions.DependencyInjection.Tests.Fakes.csproj" />
+    <Project Path="tests/Nexum.OpenTelemetry.Tests/Nexum.OpenTelemetry.Tests.csproj" />
+    <Project Path="tests/Nexum.Results.Tests/Nexum.Results.Tests.csproj" />
+    <Project Path="tests/Nexum.Tests/Nexum.Tests.csproj" />
+    <Project Path="tests/Nexum.SourceGenerators.Tests/Nexum.SourceGenerators.Tests.csproj" />
+    <Project Path="tests/Nexum.Contract.Tests/Nexum.Contract.Tests.csproj" />
+    <Project Path="tests/Nexum.NativeAot.SmokeTest/Nexum.NativeAot.SmokeTest.csproj" />
+  </Folder>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/Nexum.Benchmarks/Nexum.Benchmarks.csproj" />
+  </Folder>
+</Solution>
