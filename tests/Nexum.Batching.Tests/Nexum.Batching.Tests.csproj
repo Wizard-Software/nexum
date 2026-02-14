@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" />
-    <PackageReference Include="MediatR" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Nexum\Nexum.csproj" />
     <ProjectReference Include="..\..\src\Nexum.Batching\Nexum.Batching.csproj" />
+    <ProjectReference Include="..\..\src\Nexum\Nexum.csproj" />
     <ProjectReference Include="..\..\src\Nexum.Extensions.DependencyInjection\Nexum.Extensions.DependencyInjection.csproj" />
   </ItemGroup>
 
