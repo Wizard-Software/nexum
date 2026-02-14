@@ -7,6 +7,7 @@
     <Project Path="src/Nexum.Results/Nexum.Results.csproj" />
     <Project Path="src/Nexum/Nexum.csproj" />
     <Project Path="src/Nexum.SourceGenerators/Nexum.SourceGenerators.csproj" />
+    <Project Path="src/Nexum.Results.FluentValidation/Nexum.Results.FluentValidation.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Nexum.Abstractions.Tests/Nexum.Abstractions.Tests.csproj" />
@@ -19,6 +20,7 @@
     <Project Path="tests/Nexum.SourceGenerators.Tests/Nexum.SourceGenerators.Tests.csproj" />
     <Project Path="tests/Nexum.Contract.Tests/Nexum.Contract.Tests.csproj" />
     <Project Path="tests/Nexum.NativeAot.SmokeTest/Nexum.NativeAot.SmokeTest.csproj" />
+    <Project Path="tests/Nexum.Results.FluentValidation.Tests/Nexum.Results.FluentValidation.Tests.csproj" />
   </Folder>
   <Folder Name="/benchmarks/">
     <Project Path="benchmarks/Nexum.Benchmarks/Nexum.Benchmarks.csproj" />
