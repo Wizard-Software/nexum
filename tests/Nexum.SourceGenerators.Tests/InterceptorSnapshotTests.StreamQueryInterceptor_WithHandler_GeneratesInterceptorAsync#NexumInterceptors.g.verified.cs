@@ -39,7 +39,7 @@ namespace TestApp.Generated
                     {
                         var handler = global::Microsoft.Extensions.DependencyInjection
                             .ServiceProviderServiceExtensions
-                            .GetRequiredService<global::TestApp.StreamOrdersQueryHandler>(sp);
+                            .GetRequiredService<global::Nexum.Abstractions.IStreamQueryHandler<TestApp.StreamOrdersQuery, System.String>>(sp);
                         return handler.HandleAsync(qry, ct);
                     },
                     ct);

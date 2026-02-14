@@ -39,7 +39,7 @@ namespace TestApp.Generated
                     {
                         var handler = global::Microsoft.Extensions.DependencyInjection
                             .ServiceProviderServiceExtensions
-                            .GetRequiredService<global::TestApp.CreateOrderCommandHandler>(sp);
+                            .GetRequiredService<global::Nexum.Abstractions.ICommandHandler<TestApp.CreateOrderCommand, System.Guid>>(sp);
                         return handler.HandleAsync(cmd, ct);
                     },
                     ct);

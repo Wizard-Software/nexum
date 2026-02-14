@@ -149,10 +149,11 @@ namespace Nexum.SourceGenerators
             {
                 // Direct handler call (no Tier 2)
                 // Handler is guaranteed non-null here (generator filters out call-sites without known handlers)
-                string handlerFQN = handler!.HandlerFullyQualifiedName;
+                // Resolve by service interface (not concrete type) — DI registers the interface
+                string serviceInterfaceFQN = handler!.ServiceInterfaceFullyQualifiedName;
                 sb.AppendLine("                        var handler = global::Microsoft.Extensions.DependencyInjection");
                 sb.AppendLine("                            .ServiceProviderServiceExtensions");
-                sb.AppendLine($"                            .GetRequiredService<global::{handlerFQN}>(sp);");
+                sb.AppendLine($"                            .GetRequiredService<global::{serviceInterfaceFQN}>(sp);");
                 sb.AppendLine("                        return handler.HandleAsync(cmd, ct);");
             }
 
@@ -197,10 +198,11 @@ namespace Nexum.SourceGenerators
             {
                 // Direct handler call (no Tier 2)
                 // Handler is guaranteed non-null here (generator filters out call-sites without known handlers)
-                string handlerFQN = handler!.HandlerFullyQualifiedName;
+                // Resolve by service interface (not concrete type) — DI registers the interface
+                string serviceInterfaceFQN = handler!.ServiceInterfaceFullyQualifiedName;
                 sb.AppendLine("                        var handler = global::Microsoft.Extensions.DependencyInjection");
                 sb.AppendLine("                            .ServiceProviderServiceExtensions");
-                sb.AppendLine($"                            .GetRequiredService<global::{handlerFQN}>(sp);");
+                sb.AppendLine($"                            .GetRequiredService<global::{serviceInterfaceFQN}>(sp);");
                 sb.AppendLine("                        return handler.HandleAsync(qry, ct);");
             }
 
@@ -245,10 +247,11 @@ namespace Nexum.SourceGenerators
             {
                 // Direct handler call (no Tier 2)
                 // Handler is guaranteed non-null here (generator filters out call-sites without known handlers)
-                string handlerFQN = handler!.HandlerFullyQualifiedName;
+                // Resolve by service interface (not concrete type) — DI registers the interface
+                string serviceInterfaceFQN = handler!.ServiceInterfaceFullyQualifiedName;
                 sb.AppendLine("                        var handler = global::Microsoft.Extensions.DependencyInjection");
                 sb.AppendLine("                            .ServiceProviderServiceExtensions");
-                sb.AppendLine($"                            .GetRequiredService<global::{handlerFQN}>(sp);");
+                sb.AppendLine($"                            .GetRequiredService<global::{serviceInterfaceFQN}>(sp);");
                 sb.AppendLine("                        return handler.HandleAsync(qry, ct);");
             }
 
