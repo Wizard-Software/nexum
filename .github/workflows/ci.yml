@@ -1,0 +1,155 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  checks: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ hashFiles('**/*.csproj', '**/Directory.Build.props', '**/Directory.Packages.props') }}
+          restore-keys: nuget-
+
+      - name: Restore
+        run: dotnet restore Nexum.slnx
+
+      - name: Build
+        run: dotnet build Nexum.slnx --no-restore -c Release
+
+      - name: Test
+        run: >-
+          dotnet test Nexum.slnx
+          --no-build
+          -c Release
+          --collect:"XPlat Code Coverage"
+          --results-directory ./TestResults
+          --logger "trx;LogFilePrefix=test-results"
+
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: ./TestResults/**/*.trx
+
+      - name: Generate coverage report
+        if: success() || failure()
+        run: |
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          reportgenerator \
+            -reports:./TestResults/**/coverage.cobertura.xml \
+            -targetdir:./CoverageReport \
+            -reporttypes:"MarkdownSummaryGithub;Cobertura"
+          cat ./CoverageReport/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: ./CoverageReport
+
+  build-without-sg:
+    name: Build without Source Generators (ADR-001)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ hashFiles('**/*.csproj', '**/Directory.Build.props', '**/Directory.Packages.props') }}
+          restore-keys: nuget-
+
+      - name: Restore
+        run: dotnet restore Nexum.slnx
+
+      - name: Build
+        run: dotnet build Nexum.slnx --no-restore -c Release
+
+      - name: Test (excluding Source Generator tests)
+        run: >-
+          dotnet test Nexum.slnx
+          --no-build
+          -c Release
+          --filter "FullyQualifiedName!~Nexum.SourceGenerators.Tests"
+
+  nativeaot-smoke:
+    name: NativeAOT Smoke Test (ADR-005)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install NativeAOT prerequisites
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+
+      - name: Publish NativeAOT
+        run: dotnet publish tests/Nexum.NativeAot.SmokeTest -r linux-x64 -c Release
+
+      - name: Run smoke test
+        run: ./tests/Nexum.NativeAot.SmokeTest/bin/Release/net10.0/linux-x64/publish/Nexum.NativeAot.SmokeTest
+
+  benchmarks:
+    name: Performance Regression Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      deployments: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ hashFiles('**/*.csproj', '**/Directory.Build.props', '**/Directory.Packages.props') }}
+          restore-keys: nuget-
+
+      - name: Run benchmarks
+        run: >-
+          dotnet run --project benchmarks/Nexum.Benchmarks -c Release --
+          --filter '*NexumRegression*'
+
+      - name: Store benchmark results
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          tool: 'benchmarkdotnet'
+          output-file-path: BenchmarkDotNet.Artifacts/results/Nexum.Benchmarks.NexumRegressionBenchmarks-report-full-compressed.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          alert-threshold: '115%'
+          fail-on-alert: true
+          comment-on-alert: true
