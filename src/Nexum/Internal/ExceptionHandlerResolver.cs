@@ -214,11 +214,22 @@ internal sealed class ExceptionHandlerResolver(
             foreach (var exceptionType in exceptionTypeHierarchy)
             {
                 // Build closed handler type: e.g., ICommandExceptionHandler<CreateOrderCommand, ValidationException>
-                var handlerType = handlerOpenGeneric.MakeGenericType(messageType, exceptionType);
+                Type handlerType;
+                object? handlersObj;
+                try
+                {
+                    handlerType = handlerOpenGeneric.MakeGenericType(messageType, exceptionType);
+                    var handlersEnumerableType = typeof(IEnumerable<>).MakeGenericType(handlerType);
+                    handlersObj = _serviceProvider.GetService(handlersEnumerableType);
+                }
+                catch (NotSupportedException)
+                {
+                    // NativeAOT: dynamically-constructed generic type has no metadata — skip
+                    continue;
+                }
 
                 // Resolve all handlers of this type from DI
-                var handlersEnumerableType = typeof(IEnumerable<>).MakeGenericType(handlerType);
-                var handlers = _serviceProvider.GetService(handlersEnumerableType) as System.Collections.IEnumerable;
+                var handlers = handlersObj as System.Collections.IEnumerable;
 
                 if (handlers is null)
                 {
