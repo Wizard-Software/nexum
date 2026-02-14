@@ -11,11 +11,12 @@ namespace Nexum.Benchmarks;
 
 /// <summary>
 /// Benchmark: Individual dispatch vs Batched dispatch.
-/// Compares sequential and concurrent query dispatch with and without batching.
+/// Simulates 1ms DB latency per handler call to demonstrate batching's value:
+/// batched queries execute with a single I/O round-trip instead of N separate ones.
 /// </summary>
 [MemoryDiagnoser]
 [SimpleJob(RuntimeMoniker.Net10_0)]
-public sealed class BatchingBenchmarks
+public class BatchingBenchmarks
 {
     private IQueryDispatcher _noBatchingDispatcher = null!;
     private IQueryDispatcher _batchingDispatcher = null!;
@@ -28,7 +29,7 @@ public sealed class BatchingBenchmarks
         .ToArray();
 
     [GlobalSetup]
-    public void Setup()
+    public async Task SetupAsync()
     {
         // Setup WITHOUT batching (baseline)
         var noBatchingServices = new ServiceCollection();
@@ -45,7 +46,7 @@ public sealed class BatchingBenchmarks
         batchingServices.AddNexumBatching(
             configure: opts =>
             {
-                opts.BatchWindow = TimeSpan.FromMilliseconds(10);
+                opts.BatchWindow = TimeSpan.FromMilliseconds(1);
                 opts.MaxBatchSize = 100;
             },
             assemblies: [typeof(GetUserByIdBatchHandler).Assembly]);
@@ -54,13 +55,13 @@ public sealed class BatchingBenchmarks
         _batchingDispatcher = _batchingSp.GetRequiredService<IQueryDispatcher>();
 
         // Warm up both dispatchers
-        _noBatchingDispatcher.DispatchAsync(_queries[0], CancellationToken.None).AsTask().GetAwaiter().GetResult();
-        _batchingDispatcher.DispatchAsync(_queries[0], CancellationToken.None).AsTask().GetAwaiter().GetResult();
+        await _noBatchingDispatcher.DispatchAsync(_queries[0], CancellationToken.None).ConfigureAwait(false);
+        await _batchingDispatcher.DispatchAsync(_queries[0], CancellationToken.None).ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Baseline: 100 sequential DispatchAsync calls without batching.
-    /// Each query hits the handler individually.
+    /// Baseline: 100 sequential queries without batching.
+    /// Each query pays 1ms simulated DB latency individually (~100ms total).
     /// </summary>
     [Benchmark(Baseline = true)]
     public async Task IndividualDispatches_100QueriesAsync()
@@ -72,24 +73,25 @@ public sealed class BatchingBenchmarks
     }
 
     /// <summary>
-    /// 100 sequential DispatchAsync calls WITH batching enabled.
-    /// Queries are collected over the batch window and executed together.
+    /// 100 concurrent queries WITHOUT batching.
+    /// Queries run in parallel but each still pays 1ms DB latency.
     /// </summary>
     [Benchmark]
-    public async Task BatchedDispatches_100QueriesAsync()
+    public async Task ConcurrentDispatches_NoBatching_100QueriesAsync()
     {
-        foreach (var query in _queries)
-        {
-            await _batchingDispatcher.DispatchAsync(query, CancellationToken.None).ConfigureAwait(false);
-        }
+        var tasks = _queries
+            .Select(q => _noBatchingDispatcher.DispatchAsync(q, CancellationToken.None).AsTask())
+            .ToArray();
+
+        await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
     /// <summary>
-    /// 100 concurrent Task.WhenAll dispatches with batching.
-    /// Demonstrates natural batching when queries arrive simultaneously.
+    /// 100 concurrent queries WITH batching.
+    /// All queries are collected into a single batch, paying only 1ms DB latency once.
     /// </summary>
     [Benchmark]
-    public async Task ConcurrentDispatches_100QueriesAsync()
+    public async Task ConcurrentDispatches_Batched_100QueriesAsync()
     {
         var tasks = _queries
             .Select(q => _batchingDispatcher.DispatchAsync(q, CancellationToken.None).AsTask())
@@ -99,10 +101,10 @@ public sealed class BatchingBenchmarks
     }
 
     [GlobalCleanup]
-    public void Cleanup()
+    public async Task CleanupAsync()
     {
-        _noBatchingSp.Dispose();
-        _batchingSp.Dispose();
+        await _noBatchingSp.DisposeAsync().ConfigureAwait(false);
+        await _batchingSp.DisposeAsync().ConfigureAwait(false);
     }
 }
 
@@ -111,19 +113,17 @@ public sealed record GetUserByIdQuery(int UserId) : IQuery<UserDto>;
 
 public sealed record UserDto(int Id, string Name, string Email);
 
-// Non-batched handler (baseline)
+// Non-batched handler — 1ms delay per query simulates individual DB call
 public sealed class GetUserByIdQueryHandler : IQueryHandler<GetUserByIdQuery, UserDto>
 {
-    // Simulates individual database lookups
-    public ValueTask<UserDto> HandleAsync(GetUserByIdQuery query, CancellationToken ct = default)
+    public async ValueTask<UserDto> HandleAsync(GetUserByIdQuery query, CancellationToken ct = default)
     {
-        // Simulate some work (in real scenarios this would be a DB call)
-        var result = new UserDto(query.UserId, $"User{query.UserId}", $"user{query.UserId}@example.com");
-        return ValueTask.FromResult(result);
+        await Task.Delay(1, ct).ConfigureAwait(false);
+        return new UserDto(query.UserId, $"User{query.UserId}", $"user{query.UserId}@example.com");
     }
 }
 
-// Batched handler (optimized)
+// Batched handler — 1ms delay for entire batch simulates single DB call with IN clause
 public sealed class GetUserByIdBatchHandler : IBatchQueryHandler<GetUserByIdQuery, int, UserDto>
 {
     public int GetKey(GetUserByIdQuery query)
@@ -131,15 +131,15 @@ public sealed class GetUserByIdBatchHandler : IBatchQueryHandler<GetUserByIdQuer
         return query.UserId;
     }
 
-    public ValueTask<IReadOnlyDictionary<int, UserDto>> HandleAsync(
+    public async ValueTask<IReadOnlyDictionary<int, UserDto>> HandleAsync(
         IReadOnlyList<GetUserByIdQuery> queries,
         CancellationToken ct = default)
     {
-        // Simulates a single batched database query (e.g., SELECT * FROM Users WHERE Id IN (...))
+        await Task.Delay(1, ct).ConfigureAwait(false);
         var results = queries.ToDictionary(
             q => q.UserId,
             q => new UserDto(q.UserId, $"User{q.UserId}", $"user{q.UserId}@example.com"));
 
-        return ValueTask.FromResult<IReadOnlyDictionary<int, UserDto>>(results);
+        return results;
     }
 }
