@@ -11,11 +11,12 @@ namespace Nexum.Benchmarks;
 
 /// <summary>
 /// Benchmark: Individual dispatch vs Batched dispatch.
-/// Simulates 1ms DB latency per handler call to demonstrate batching's value:
-/// batched queries execute with a single I/O round-trip instead of N separate ones.
+/// Simulates 5ms DB latency with a 10-connection pool (SemaphoreSlim) to demonstrate batching's value:
+/// sequential ~500ms, concurrent ~50ms (pool contention), batched ~6ms (bypasses pool entirely).
 /// </summary>
 [MemoryDiagnoser]
-[SimpleJob(RuntimeMoniker.Net10_0)]
+[ShortRunJob(RuntimeMoniker.Net10_0)]
+[InvocationCount(1)]
 public class BatchingBenchmarks
 {
     private IQueryDispatcher _noBatchingDispatcher = null!;
@@ -61,7 +62,7 @@ public class BatchingBenchmarks
 
     /// <summary>
     /// Baseline: 100 sequential queries without batching.
-    /// Each query pays 1ms simulated DB latency individually (~100ms total).
+    /// Each query pays 5ms simulated DB latency individually (~500ms total).
     /// </summary>
     [Benchmark(Baseline = true)]
     public async Task IndividualDispatches_100QueriesAsync()
@@ -74,7 +75,7 @@ public class BatchingBenchmarks
 
     /// <summary>
     /// 100 concurrent queries WITHOUT batching.
-    /// Queries run in parallel but each still pays 1ms DB latency.
+    /// 10-connection pool means 10 waves of 5ms each (~50ms total).
     /// </summary>
     [Benchmark]
     public async Task ConcurrentDispatches_NoBatching_100QueriesAsync()
@@ -88,7 +89,7 @@ public class BatchingBenchmarks
 
     /// <summary>
     /// 100 concurrent queries WITH batching.
-    /// All queries are collected into a single batch, paying only 1ms DB latency once.
+    /// All queries are collected into a single batch (~1ms window + 5ms single DB call ≈ 6ms).
     /// </summary>
     [Benchmark]
     public async Task ConcurrentDispatches_Batched_100QueriesAsync()
@@ -113,17 +114,29 @@ public sealed record GetUserByIdQuery(int UserId) : IQuery<UserDto>;
 
 public sealed record UserDto(int Id, string Name, string Email);
 
-// Non-batched handler — 1ms delay per query simulates individual DB call
+// Non-batched handler — 5ms delay per query with a 10-connection pool (SemaphoreSlim)
+// simulates real DB connection pool contention under concurrent load
 public sealed class GetUserByIdQueryHandler : IQueryHandler<GetUserByIdQuery, UserDto>
 {
+    private static readonly SemaphoreSlim s_connectionPool = new(10, 10);
+
     public async ValueTask<UserDto> HandleAsync(GetUserByIdQuery query, CancellationToken ct = default)
     {
-        await Task.Delay(1, ct).ConfigureAwait(false);
-        return new UserDto(query.UserId, $"User{query.UserId}", $"user{query.UserId}@example.com");
+        await s_connectionPool.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            await Task.Delay(5, ct).ConfigureAwait(false);
+            return new UserDto(query.UserId, $"User{query.UserId}", $"user{query.UserId}@example.com");
+        }
+        finally
+        {
+            s_connectionPool.Release();
+        }
     }
 }
 
-// Batched handler — 1ms delay for entire batch simulates single DB call with IN clause
+// Batched handler — 5ms delay for entire batch simulates single DB call with IN clause
+// No connection pool needed: batch bypasses per-query contention entirely
 public sealed class GetUserByIdBatchHandler : IBatchQueryHandler<GetUserByIdQuery, int, UserDto>
 {
     public int GetKey(GetUserByIdQuery query)
@@ -135,7 +148,7 @@ public sealed class GetUserByIdBatchHandler : IBatchQueryHandler<GetUserByIdQuer
         IReadOnlyList<GetUserByIdQuery> queries,
         CancellationToken ct = default)
     {
-        await Task.Delay(1, ct).ConfigureAwait(false);
+        await Task.Delay(5, ct).ConfigureAwait(false);
         var results = queries.ToDictionary(
             q => q.UserId,
             q => new UserDto(q.UserId, $"User{q.UserId}", $"user{q.UserId}@example.com"));
