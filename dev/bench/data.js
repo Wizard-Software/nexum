@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1771117543639,
+  "lastUpdate": 1771119195545,
   "repoUrl": "https://github.com/asawicki/nexum",
   "entries": {
     "Benchmark": [
@@ -126,6 +126,48 @@ window.BENCHMARK_DATA = {
             "value": 132.96385504459514,
             "unit": "ns",
             "range": "± 7.418588178518134"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "artur.sawicki@gmail.com",
+            "name": "asawicki",
+            "username": "asawicki"
+          },
+          "committer": {
+            "email": "artur.sawicki@gmail.com",
+            "name": "asawicki",
+            "username": "asawicki"
+          },
+          "distinct": true,
+          "id": "b33403b22adcab9ed62dae4490a50b11556d3108",
+          "message": "Enhance CI configuration by adjusting alert thresholds and modifying benchmark job type for better performance analysis; streamline error handling in connection pool management for improved query simulation.",
+          "timestamp": "2026-02-15T02:30:16+01:00",
+          "tree_id": "c9af6448aaf75e998f83333f807f34be0b6ac123",
+          "url": "https://github.com/asawicki/nexum/commit/b33403b22adcab9ed62dae4490a50b11556d3108"
+        },
+        "date": 1771119195291,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleCommand",
+            "value": 77.13221165963581,
+            "unit": "ns",
+            "range": "± 1.7720720155486362"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3Behaviors",
+            "value": 181.31003986555953,
+            "unit": "ns",
+            "range": "± 2.148461318081788"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_5NotificationHandlers",
+            "value": 139.26965787581034,
+            "unit": "ns",
+            "range": "± 2.954589462608372"
           }
         ]
       }
