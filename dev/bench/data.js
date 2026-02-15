@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1771119195545,
+  "lastUpdate": 1771119586469,
   "repoUrl": "https://github.com/asawicki/nexum",
   "entries": {
     "Benchmark": [
@@ -168,6 +168,48 @@ window.BENCHMARK_DATA = {
             "value": 139.26965787581034,
             "unit": "ns",
             "range": "± 2.954589462608372"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "artur.sawicki@gmail.com",
+            "name": "asawicki",
+            "username": "asawicki"
+          },
+          "committer": {
+            "email": "artur.sawicki@gmail.com",
+            "name": "asawicki",
+            "username": "asawicki"
+          },
+          "distinct": true,
+          "id": "fc48fd52a3f81ae1b783ac3d513c9fcd8c35bf29",
+          "message": "Enhance GitHub Actions workflow by adding support for release events, allowing automated actions upon package publication.",
+          "timestamp": "2026-02-15T02:36:45+01:00",
+          "tree_id": "2d8e6b3528c2c01dcfc9456f284e52395f697ea5",
+          "url": "https://github.com/asawicki/nexum/commit/fc48fd52a3f81ae1b783ac3d513c9fcd8c35bf29"
+        },
+        "date": 1771119586041,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleCommand",
+            "value": 74.74597978591919,
+            "unit": "ns",
+            "range": "± 0.4013320813116319"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3Behaviors",
+            "value": 191.1962427775065,
+            "unit": "ns",
+            "range": "± 7.167841850110644"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_5NotificationHandlers",
+            "value": 143.65595094910984,
+            "unit": "ns",
+            "range": "± 15.684479884057408"
           }
         ]
       }
