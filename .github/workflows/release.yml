@@ -3,6 +3,8 @@ name: Release NuGet Packages
 on:
   push:
     tags: ['v*']
+  release:
+    types: [published]
 
 permissions:
   contents: read
