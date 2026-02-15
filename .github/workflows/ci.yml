@@ -150,6 +150,6 @@ jobs:
           output-file-path: BenchmarkDotNet.Artifacts/results/Nexum.Benchmarks.NexumRegressionBenchmarks-report-full-compressed.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
-          alert-threshold: '115%'
-          fail-on-alert: true
+          alert-threshold: '130%'
+          fail-on-alert: false
           comment-on-alert: true

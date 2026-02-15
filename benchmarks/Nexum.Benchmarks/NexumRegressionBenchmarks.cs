@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Nexum.Benchmarks;
 
 [MemoryDiagnoser]
-[ShortRunJob(RuntimeMoniker.Net10_0)]
+[MediumRunJob(RuntimeMoniker.Net10_0)]
 [JsonExporterAttribute.FullCompressed]
 public class NexumRegressionBenchmarks
 {
