@@ -12,3 +12,5 @@ NEXUM004 | Nexum.SourceGenerators | Warning | Marker attribute without handler i
 NEXUM005 | Nexum.SourceGenerators | Info | Interceptor generated for dispatch call-site
 NEXUM006 | Nexum.SourceGenerators | Warning | Cannot intercept dispatch — concrete type unknown
 NEXUM007 | Nexum.SourceGenerators | Info | Interceptor skipped — handler not in compilation
+NEXUM008 | Nexum.SourceGenerators | Warning | NexumEndpoint attribute on type not implementing ICommand or IQuery
+NEXUM009 | Nexum.SourceGenerators | Error | Duplicate endpoint route pattern

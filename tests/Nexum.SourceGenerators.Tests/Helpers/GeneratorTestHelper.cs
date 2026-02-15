@@ -9,6 +9,7 @@ namespace Nexum.SourceGenerators.Tests.Helpers;
 internal static class GeneratorTestHelper
 {
     private static readonly MetadataReference[] s_references = GetMetadataReferences();
+    private static readonly MetadataReference[] s_aspNetCoreReferences = GetAspNetCoreMetadataReferences();
 
     public static CSharpCompilation CreateCompilation(string source, string assemblyName = "TestAssembly")
     {
@@ -17,6 +18,16 @@ internal static class GeneratorTestHelper
             assemblyName,
             [syntaxTree],
             s_references,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+    }
+
+    public static CSharpCompilation CreateAspNetCoreCompilation(string source, string assemblyName = "TestAssembly")
+    {
+        SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source);
+        return CSharpCompilation.Create(
+            assemblyName,
+            [syntaxTree],
+            s_aspNetCoreReferences,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
     }
 
@@ -98,6 +109,40 @@ internal static class GeneratorTestHelper
         if (File.Exists(collectionsPath) && seen.Add(collectionsPath))
         {
             references.Add(MetadataReference.CreateFromFile(collectionsPath));
+        }
+
+        return references.ToArray();
+    }
+
+    private static MetadataReference[] GetAspNetCoreMetadataReferences()
+    {
+        // Start with base references
+        List<MetadataReference> references = [.. s_references];
+        HashSet<string> seen = [];
+        foreach (MetadataReference metaRef in s_references)
+        {
+            if (metaRef is PortableExecutableReference peRef && peRef.FilePath is not null)
+            {
+                seen.Add(peRef.FilePath);
+            }
+        }
+
+        // Add ASP.NET Core assemblies from the loaded framework
+        Type[] aspNetCoreTypes =
+        [
+            typeof(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder),
+            typeof(Microsoft.AspNetCore.Http.HttpContext),
+            typeof(Microsoft.AspNetCore.Http.TypedResults),
+            typeof(Microsoft.AspNetCore.Mvc.ProblemDetails),
+        ];
+
+        foreach (Type type in aspNetCoreTypes)
+        {
+            string location = type.Assembly.Location;
+            if (!string.IsNullOrEmpty(location) && seen.Add(location))
+            {
+                references.Add(MetadataReference.CreateFromFile(location));
+            }
         }
 
         return references.ToArray();

@@ -8,10 +8,11 @@ namespace Nexum.Extensions.AspNetCore;
 public static class NexumAspNetCoreServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers Nexum ASP.NET Core services including ProblemDetails options.
+    /// Registers Nexum ASP.NET Core services including ProblemDetails options and endpoint configuration.
     /// </summary>
     /// <param name="services">The service collection.</param>
-    /// <param name="configure">Optional callback to configure <see cref="NexumProblemDetailsOptions"/>.</param>
+    /// <param name="configureProblemDetails">Optional callback to configure <see cref="NexumProblemDetailsOptions"/>.</param>
+    /// <param name="configureEndpoints">Optional callback to configure <see cref="NexumEndpointOptions"/>.</param>
     /// <returns>The service collection for chaining.</returns>
     /// <remarks>
     /// This method does NOT call <c>AddProblemDetails()</c> — the caller owns that registration.
@@ -19,12 +20,20 @@ public static class NexumAspNetCoreServiceCollectionExtensions
     /// </remarks>
     public static IServiceCollection AddNexumAspNetCore(
         this IServiceCollection services,
-        Action<NexumProblemDetailsOptions>? configure = null)
+        Action<NexumProblemDetailsOptions>? configureProblemDetails = null,
+        Action<NexumEndpointOptions>? configureEndpoints = null)
     {
-        if (configure is not null)
+        if (configureProblemDetails is not null)
         {
-            services.Configure(configure);
+            services.Configure(configureProblemDetails);
         }
+
+        if (configureEndpoints is not null)
+        {
+            services.Configure(configureEndpoints);
+        }
+
+        services.AddTransient<NexumResultEndpointFilter>();
 
         return services;
     }

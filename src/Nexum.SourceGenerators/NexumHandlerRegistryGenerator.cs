@@ -18,6 +18,7 @@ namespace Nexum.SourceGenerators
         private const string StreamQueryHandlerAttributeFQN = "Nexum.Abstractions.StreamQueryHandlerAttribute";
         private const string NotificationHandlerAttributeFQN = "Nexum.Abstractions.NotificationHandlerAttribute";
         private const string BehaviorOrderAttributeFQN = "Nexum.Abstractions.BehaviorOrderAttribute";
+        private const string NexumEndpointAttributeFQN = "Nexum.Abstractions.NexumEndpointAttribute";
 
         // Handler interface metadata names (without namespace, with arity)
         private const string CommandHandlerInterfaceName = "ICommandHandler";
@@ -69,6 +70,12 @@ namespace Nexum.SourceGenerators
                 BehaviorOrderAttributeFQN,
                 predicate: static (node, _) => node is ClassDeclarationSyntax or RecordDeclarationSyntax,
                 transform: static (ctx, ct) => TransformBehaviors(ctx, ct));
+
+            // Endpoint discovery branch
+            IncrementalValuesProvider<EndpointRegistration?> endpointRegistrations = context.SyntaxProvider.ForAttributeWithMetadataName(
+                NexumEndpointAttributeFQN,
+                predicate: static (node, _) => node is ClassDeclarationSyntax or RecordDeclarationSyntax,
+                transform: static (ctx, ct) => TransformEndpoint(ctx, ct));
 
             // Tier 3: Interceptor call-site discovery
             IncrementalValuesProvider<InterceptorCallSite?> interceptorCallSites = context.SyntaxProvider
@@ -136,6 +143,21 @@ namespace Nexum.SourceGenerators
                     return new EquatableArray<BehaviorRegistration>(list.ToArray());
                 });
 
+            // Collect all endpoints
+            IncrementalValueProvider<EquatableArray<EndpointRegistration>> allEndpoints = endpointRegistrations.Collect()
+                .Select(static (items, _) =>
+                {
+                    var list = new List<EndpointRegistration>();
+                    foreach (EndpointRegistration? item in items)
+                    {
+                        if (item is not null)
+                        {
+                            list.Add(item);
+                        }
+                    }
+                    return new EquatableArray<EndpointRegistration>(list.ToArray());
+                });
+
             // Collect interceptor call-sites
             IncrementalValueProvider<EquatableArray<InterceptorCallSite>> allCallSites = interceptorCallSites.Collect()
                 .Select(static (items, _) =>
@@ -151,15 +173,17 @@ namespace Nexum.SourceGenerators
                     return new EquatableArray<InterceptorCallSite>(list.ToArray());
                 });
 
-            // Combine handlers + behaviors + call-sites + compilation
+            // Combine handlers + behaviors + endpoints + call-sites + compilation
             IncrementalValueProvider<(EquatableArray<HandlerRegistration> Left, EquatableArray<BehaviorRegistration> Right)> handlersAndBehaviors = allHandlers.Combine(allBehaviors);
-            IncrementalValueProvider<((EquatableArray<HandlerRegistration> Left, EquatableArray<BehaviorRegistration> Right) Left, EquatableArray<InterceptorCallSite> Right)> handlersAndBehaviorsAndCallSites = handlersAndBehaviors.Combine(allCallSites);
-            IncrementalValueProvider<(((EquatableArray<HandlerRegistration> Left, EquatableArray<BehaviorRegistration> Right) Left, EquatableArray<InterceptorCallSite> Right) Left, Compilation Right)> combined = handlersAndBehaviorsAndCallSites.Combine(context.CompilationProvider);
+            IncrementalValueProvider<((EquatableArray<HandlerRegistration> Left, EquatableArray<BehaviorRegistration> Right) Left, EquatableArray<EndpointRegistration> Right)> handlersAndBehaviorsAndEndpoints = handlersAndBehaviors.Combine(allEndpoints);
+            IncrementalValueProvider<(((EquatableArray<HandlerRegistration> Left, EquatableArray<BehaviorRegistration> Right) Left, EquatableArray<EndpointRegistration> Right) Left, EquatableArray<InterceptorCallSite> Right)> handlersAndBehaviorsAndEndpointsAndCallSites = handlersAndBehaviorsAndEndpoints.Combine(allCallSites);
+            IncrementalValueProvider<((((EquatableArray<HandlerRegistration> Left, EquatableArray<BehaviorRegistration> Right) Left, EquatableArray<EndpointRegistration> Right) Left, EquatableArray<InterceptorCallSite> Right) Left, Compilation Right)> combined = handlersAndBehaviorsAndEndpointsAndCallSites.Combine(context.CompilationProvider);
 
             context.RegisterSourceOutput(combined, static (spc, source) =>
             {
-                EquatableArray<HandlerRegistration> registrations = source.Left.Left.Left;
-                EquatableArray<BehaviorRegistration> behaviorRegs = source.Left.Left.Right;
+                EquatableArray<HandlerRegistration> registrations = source.Left.Left.Left.Left;
+                EquatableArray<BehaviorRegistration> behaviorRegs = source.Left.Left.Left.Right;
+                EquatableArray<EndpointRegistration> endpointRegs = source.Left.Left.Right;
                 EquatableArray<InterceptorCallSite> callSitesList = source.Left.Right;
                 Compilation compilation = source.Right;
 
@@ -216,19 +240,18 @@ namespace Nexum.SourceGenerators
                     }
                 }
 
-                if (deduped.Count == 0)
-                {
-                    return;
-                }
-
                 // Determine root namespace from assembly name
                 string rootNamespace = compilation.AssemblyName ?? "Nexum.Generated";
 
-                string sourceCode = NexumHandlerRegistryEmitter.Emit(
-                    rootNamespace,
-                    new EquatableArray<HandlerRegistration>(deduped.ToArray()));
+                // Emit handler registry only if there are handlers
+                if (deduped.Count > 0)
+                {
+                    string sourceCode = NexumHandlerRegistryEmitter.Emit(
+                        rootNamespace,
+                        new EquatableArray<HandlerRegistration>(deduped.ToArray()));
 
-                spc.AddSource("NexumHandlerRegistry.g.cs", sourceCode);
+                    spc.AddSource("NexumHandlerRegistry.g.cs", sourceCode);
+                }
 
                 // Emit pipeline registry (Tier 2) - only if there are behaviors with [BehaviorOrder]
                 if (behaviorRegs.Length > 0)
@@ -238,6 +261,72 @@ namespace Nexum.SourceGenerators
                         new EquatableArray<HandlerRegistration>(deduped.ToArray()),
                         behaviorRegs);
                     spc.AddSource("NexumPipelineRegistry.g.cs", pipelineSource);
+                }
+
+                // Process endpoints
+                if (endpointRegs.Length > 0)
+                {
+                    // Check if ASP.NET Core is available in compilation
+                    bool hasAspNetCore = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Routing.IEndpointRouteBuilder") is not null;
+
+                    if (hasAspNetCore)
+                    {
+                        // Validate endpoints and report diagnostics
+                        var validEndpoints = new List<EndpointRegistration>();
+                        foreach (EndpointRegistration ep in endpointRegs)
+                        {
+                            if (ep.IsInvalid)
+                            {
+                                spc.ReportDiagnostic(Diagnostic.Create(
+                                    DiagnosticDescriptors.NEXUM008_EndpointOnNonMessageType,
+                                    Location.None,
+                                    ep.DiagnosticTypeName));
+                            }
+                            else
+                            {
+                                validEndpoints.Add(ep);
+                            }
+                        }
+
+                        // Check for duplicate routes
+                        IEnumerable<IGrouping<(string HttpMethod, string Pattern), EndpointRegistration>> routeGroups = validEndpoints
+                            .GroupBy(e => (e.HttpMethod, e.Pattern));
+
+                        foreach (IGrouping<(string HttpMethod, string Pattern), EndpointRegistration> group in routeGroups)
+                        {
+                            var items = group.ToList();
+                            if (items.Count > 1)
+                            {
+                                spc.ReportDiagnostic(Diagnostic.Create(
+                                    DiagnosticDescriptors.NEXUM009_DuplicateEndpointRoute,
+                                    Location.None,
+                                    group.Key.HttpMethod,
+                                    group.Key.Pattern,
+                                    items[0].MessageFullyQualifiedName,
+                                    items[1].MessageFullyQualifiedName));
+                            }
+                        }
+
+                        // Emit endpoint registration (filter out duplicates)
+                        var dedupedEndpoints = new List<EndpointRegistration>();
+                        var seenRoutes = new HashSet<(string, string)>();
+                        foreach (EndpointRegistration ep in validEndpoints)
+                        {
+                            if (seenRoutes.Add((ep.HttpMethod, ep.Pattern)))
+                            {
+                                dedupedEndpoints.Add(ep);
+                            }
+                        }
+
+                        if (dedupedEndpoints.Count > 0)
+                        {
+                            string endpointSource = NexumEndpointEmitter.Emit(
+                                rootNamespace,
+                                new EquatableArray<EndpointRegistration>(dedupedEndpoints.ToArray()));
+                            spc.AddSource("NexumEndpointRegistration.g.cs", endpointSource);
+                        }
+                    }
+                    // If ASP.NET Core is not available, silently skip (no diagnostics)
                 }
 
                 // Tier 3: Emit interceptors
@@ -520,6 +609,168 @@ namespace Nexum.SourceGenerators
 
             // Return as EquatableArray (may be empty if no behavior interfaces found)
             return new EquatableArray<BehaviorRegistration>(results.ToArray());
+        }
+
+        private static EndpointRegistration? TransformEndpoint(
+            GeneratorAttributeSyntaxContext context,
+            CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            var symbol = (INamedTypeSymbol)context.TargetSymbol;
+            string typeFQN = GetFullyQualifiedName(symbol);
+
+            // Extract [NexumEndpoint] attribute data
+            string? httpMethod = null;
+            string? pattern = null;
+            string? name = null;
+            string? groupName = null;
+
+            foreach (AttributeData attr in symbol.GetAttributes())
+            {
+                if (attr.AttributeClass is null)
+                {
+                    continue;
+                }
+
+                string? attrNs = GetNamespaceName(attr.AttributeClass.ContainingNamespace);
+                if (attrNs != NexumAbstractionsNamespace || attr.AttributeClass.Name != "NexumEndpointAttribute")
+                {
+                    continue;
+                }
+
+                // Constructor args: (NexumHttpMethod method, string pattern)
+                if (attr.ConstructorArguments.Length >= 2)
+                {
+                    if (attr.ConstructorArguments[0].Value is int methodValue)
+                    {
+                        httpMethod = methodValue switch
+                        {
+                            0 => "Get",
+                            1 => "Post",
+                            2 => "Put",
+                            3 => "Delete",
+                            4 => "Patch",
+                            _ => "Post"
+                        };
+                    }
+                    pattern = attr.ConstructorArguments[1].Value as string;
+                }
+
+                // Named args: Name, GroupName
+                foreach (System.Collections.Generic.KeyValuePair<string, TypedConstant> namedArg in attr.NamedArguments)
+                {
+                    if (namedArg.Key == "Name")
+                    {
+                        name = namedArg.Value.Value as string;
+                    }
+                    if (namedArg.Key == "GroupName")
+                    {
+                        groupName = namedArg.Value.Value as string;
+                    }
+                }
+                break;
+            }
+
+            if (httpMethod is null || pattern is null)
+            {
+                return null;
+            }
+
+            // Determine if type implements ICommand<T> or IQuery<T>
+            HandlerKind? kind = null;
+            string? resultFQN = null;
+            ITypeSymbol? resultTypeSymbol = null;
+
+            foreach (INamedTypeSymbol iface in symbol.AllInterfaces)
+            {
+                ct.ThrowIfCancellationRequested();
+                string? ns = GetNamespaceName(iface.ContainingNamespace);
+                if (ns != NexumAbstractionsNamespace)
+                {
+                    continue;
+                }
+
+                // Check for IVoidCommand first (it extends ICommand<Unit>)
+                if (iface.Name == "IVoidCommand" && iface.Arity == 0)
+                {
+                    kind = HandlerKind.Command;
+                    resultFQN = "Nexum.Abstractions.Unit";
+                    break;
+                }
+
+                if (iface.Name == "ICommand" && iface.Arity == 1)
+                {
+                    kind = HandlerKind.Command;
+                    resultTypeSymbol = iface.TypeArguments[0];
+                    resultFQN = GetFullyQualifiedName(resultTypeSymbol);
+                    break;
+                }
+                if (iface.Name == "IQuery" && iface.Arity == 1)
+                {
+                    kind = HandlerKind.Query;
+                    resultTypeSymbol = iface.TypeArguments[0];
+                    resultFQN = GetFullyQualifiedName(resultTypeSymbol);
+                    break;
+                }
+            }
+
+            if (kind is null)
+            {
+                // NEXUM008: [NexumEndpoint] on non-command/query type
+                return new EndpointRegistration(
+                    MessageFullyQualifiedName: typeFQN,
+                    ResultFullyQualifiedName: null,
+                    HttpMethod: httpMethod,
+                    Pattern: pattern,
+                    Name: name,
+                    GroupName: groupName,
+                    Kind: HandlerKind.Command, // placeholder
+                    HasResultMembers: false,
+                    IsInvalid: true,
+                    DiagnosticTypeName: typeFQN);
+            }
+
+            // Check if result type has structural Result members (duck typing)
+            bool hasResultMembers = false;
+            if (resultTypeSymbol is not null && resultFQN != "Nexum.Abstractions.Unit")
+            {
+                // Look for IsSuccess (bool), Value, and Error properties
+                bool hasIsSuccess = false;
+                bool hasValue = false;
+                bool hasError = false;
+
+                foreach (ISymbol member in resultTypeSymbol.GetMembers())
+                {
+                    if (member is IPropertySymbol prop)
+                    {
+                        if (prop.Name == "IsSuccess" && prop.Type.SpecialType == SpecialType.System_Boolean)
+                        {
+                            hasIsSuccess = true;
+                        }
+                        else if (prop.Name == "Value")
+                        {
+                            hasValue = true;
+                        }
+                        else if (prop.Name == "Error")
+                        {
+                            hasError = true;
+                        }
+                    }
+                }
+
+                hasResultMembers = hasIsSuccess && hasValue && hasError;
+            }
+
+            return new EndpointRegistration(
+                MessageFullyQualifiedName: typeFQN,
+                ResultFullyQualifiedName: resultFQN,
+                HttpMethod: httpMethod,
+                Pattern: pattern,
+                Name: name,
+                GroupName: groupName,
+                Kind: kind.Value,
+                HasResultMembers: hasResultMembers);
         }
 
         private static string GetFullyQualifiedName(INamedTypeSymbol symbol)
