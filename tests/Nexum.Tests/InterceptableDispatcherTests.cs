@@ -493,6 +493,206 @@ public sealed class InterceptableDispatcherTests : IDisposable
 
     #endregion
 
+    #region Scoped Resolution with ValidateScopes Tests
+
+    [Fact]
+    public async Task DispatchInterceptedCommandAsync_SyncFastPath_WithValidateScopes_ResolvesScopedHandlerAsync()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddSingleton(new NexumOptions { MaxDispatchDepth = int.MaxValue });
+        services.AddSingleton<Microsoft.Extensions.Logging.ILogger<ExceptionHandlerResolver>>(
+            NullLogger<ExceptionHandlerResolver>.Instance);
+        services.AddSingleton<ExceptionHandlerResolver>();
+        services.AddSingleton<ICommandDispatcher, CommandDispatcher>();
+        services.AddScoped<ScopedCommandHandler>();
+
+        using ServiceProvider sp = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+        ICommandDispatcher dispatcher = sp.GetRequiredService<ICommandDispatcher>();
+        var interceptable = (IInterceptableDispatcher)dispatcher;
+
+        var command = new TestInterceptorCommand("scoped-sync");
+
+        // Compiled pipeline that resolves a scoped handler (sync fast path)
+        static ValueTask<string> CompiledPipeline(
+            TestInterceptorCommand cmd,
+            IServiceProvider scopedProvider,
+            CancellationToken ct)
+        {
+            var handler = scopedProvider.GetRequiredService<ScopedCommandHandler>();
+            return handler.HandleAsync(cmd, ct);
+        }
+
+        // Act — must not throw "Cannot resolve scoped service from root provider"
+        string result = await interceptable.DispatchInterceptedCommandAsync(
+            command,
+            CompiledPipeline,
+            CancellationToken.None);
+
+        // Assert
+        result.Should().Be("scoped:scoped-sync");
+    }
+
+    [Fact]
+    public async Task DispatchInterceptedCommandAsync_AsyncPath_WithValidateScopes_ResolvesScopedHandlerAsync()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddSingleton(new NexumOptions { MaxDispatchDepth = int.MaxValue });
+        services.AddSingleton<Microsoft.Extensions.Logging.ILogger<ExceptionHandlerResolver>>(
+            NullLogger<ExceptionHandlerResolver>.Instance);
+        services.AddSingleton<ExceptionHandlerResolver>();
+        services.AddSingleton<ICommandDispatcher, CommandDispatcher>();
+        services.AddScoped<ScopedCommandHandler>();
+
+        using ServiceProvider sp = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+        ICommandDispatcher dispatcher = sp.GetRequiredService<ICommandDispatcher>();
+        var interceptable = (IInterceptableDispatcher)dispatcher;
+
+        var command = new TestInterceptorCommand("scoped-async");
+
+        // Async pipeline that yields (forces async completion path)
+        static async ValueTask<string> CompiledPipelineAsync(
+            TestInterceptorCommand cmd,
+            IServiceProvider scopedProvider,
+            CancellationToken ct)
+        {
+            var handler = scopedProvider.GetRequiredService<ScopedCommandHandler>();
+            await Task.Yield();
+            return await handler.HandleAsync(cmd, ct);
+        }
+
+        // Act
+        string result = await interceptable.DispatchInterceptedCommandAsync(
+            command,
+            CompiledPipelineAsync,
+            CancellationToken.None);
+
+        // Assert
+        result.Should().Be("scoped:scoped-async");
+    }
+
+    [Fact]
+    public async Task DispatchInterceptedCommandAsync_DepthGuardPath_WithValidateScopes_ResolvesScopedHandlerAsync()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddSingleton(new NexumOptions { MaxDispatchDepth = 16 });
+        services.AddSingleton<Microsoft.Extensions.Logging.ILogger<ExceptionHandlerResolver>>(
+            NullLogger<ExceptionHandlerResolver>.Instance);
+        services.AddSingleton<ExceptionHandlerResolver>();
+        services.AddSingleton<ICommandDispatcher, CommandDispatcher>();
+        services.AddScoped<ScopedCommandHandler>();
+
+        using ServiceProvider sp = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+        ICommandDispatcher dispatcher = sp.GetRequiredService<ICommandDispatcher>();
+        var interceptable = (IInterceptableDispatcher)dispatcher;
+
+        var command = new TestInterceptorCommand("scoped-depth");
+
+        static ValueTask<string> CompiledPipeline(
+            TestInterceptorCommand cmd,
+            IServiceProvider scopedProvider,
+            CancellationToken ct)
+        {
+            var handler = scopedProvider.GetRequiredService<ScopedCommandHandler>();
+            return handler.HandleAsync(cmd, ct);
+        }
+
+        // Act
+        string result = await interceptable.DispatchInterceptedCommandAsync(
+            command,
+            CompiledPipeline,
+            CancellationToken.None);
+
+        // Assert
+        result.Should().Be("scoped:scoped-depth");
+    }
+
+    [Fact]
+    public async Task DispatchInterceptedQueryAsync_WithValidateScopes_ResolvesScopedHandlerAsync()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddSingleton(new NexumOptions { MaxDispatchDepth = int.MaxValue });
+        services.AddSingleton<Microsoft.Extensions.Logging.ILogger<ExceptionHandlerResolver>>(
+            NullLogger<ExceptionHandlerResolver>.Instance);
+        services.AddSingleton<ExceptionHandlerResolver>();
+        services.AddSingleton<IQueryDispatcher, QueryDispatcher>();
+        services.AddScoped<ScopedQueryHandler>();
+
+        using ServiceProvider sp = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+        IQueryDispatcher dispatcher = sp.GetRequiredService<IQueryDispatcher>();
+        var interceptable = (IInterceptableDispatcher)dispatcher;
+
+        var query = new TestInterceptorQuery("scoped-query");
+
+        static ValueTask<string> CompiledPipeline(
+            TestInterceptorQuery qry,
+            IServiceProvider scopedProvider,
+            CancellationToken ct)
+        {
+            var handler = scopedProvider.GetRequiredService<ScopedQueryHandler>();
+            return handler.HandleAsync(qry, ct);
+        }
+
+        // Act
+        string result = await interceptable.DispatchInterceptedQueryAsync(
+            query,
+            CompiledPipeline,
+            CancellationToken.None);
+
+        // Assert
+        result.Should().Be("scoped:scoped-query");
+    }
+
+    [Fact]
+    public async Task StreamInterceptedAsync_WithValidateScopes_ResolvesScopedHandlerAsync()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddSingleton(new NexumOptions { MaxDispatchDepth = int.MaxValue });
+        services.AddSingleton<Microsoft.Extensions.Logging.ILogger<ExceptionHandlerResolver>>(
+            NullLogger<ExceptionHandlerResolver>.Instance);
+        services.AddSingleton<ExceptionHandlerResolver>();
+        services.AddSingleton<IQueryDispatcher, QueryDispatcher>();
+        services.AddScoped<ScopedStreamQueryHandler>();
+
+        using ServiceProvider sp = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+        IQueryDispatcher dispatcher = sp.GetRequiredService<IQueryDispatcher>();
+        var interceptable = (IInterceptableDispatcher)dispatcher;
+
+        var query = new TestInterceptorStreamQuery("scoped-stream");
+
+        static async IAsyncEnumerable<int> CompiledPipelineAsync(
+            TestInterceptorStreamQuery qry,
+            IServiceProvider scopedProvider,
+            [EnumeratorCancellation] CancellationToken ct)
+        {
+            var handler = scopedProvider.GetRequiredService<ScopedStreamQueryHandler>();
+            await foreach (int item in handler.HandleAsync(qry, ct))
+            {
+                yield return item;
+            }
+        }
+
+        // Act
+        var results = new List<int>();
+        await foreach (int item in interceptable.StreamInterceptedAsync(
+            query,
+            CompiledPipelineAsync,
+            CancellationToken.None))
+        {
+            results.Add(item);
+        }
+
+        // Assert
+        results.Should().ContainInOrder(1, 2, 3);
+        results.Count.Should().Be(3);
+    }
+
+    #endregion
+
     #region Cross-Dispatcher NotSupported Tests
 
     [Fact]
@@ -641,6 +841,31 @@ public sealed class InterceptableDispatcherTests : IDisposable
         {
             onInvoked();
             return ValueTask.CompletedTask;
+        }
+    }
+
+    internal sealed class ScopedCommandHandler : ICommandHandler<TestInterceptorCommand, string>
+    {
+        public ValueTask<string> HandleAsync(TestInterceptorCommand command, CancellationToken ct = default)
+            => ValueTask.FromResult($"scoped:{command.Value}");
+    }
+
+    internal sealed class ScopedQueryHandler : IQueryHandler<TestInterceptorQuery, string>
+    {
+        public ValueTask<string> HandleAsync(TestInterceptorQuery query, CancellationToken ct = default)
+            => ValueTask.FromResult($"scoped:{query.Value}");
+    }
+
+    internal sealed class ScopedStreamQueryHandler : IStreamQueryHandler<TestInterceptorStreamQuery, int>
+    {
+        public async IAsyncEnumerable<int> HandleAsync(
+            TestInterceptorStreamQuery query,
+            [EnumeratorCancellation] CancellationToken ct = default)
+        {
+            yield return 1;
+            await Task.Yield();
+            yield return 2;
+            yield return 3;
         }
     }
 
