@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1771119586469,
+  "lastUpdate": 1772222094417,
   "repoUrl": "https://github.com/asawicki/nexum",
   "entries": {
     "Benchmark": [
@@ -210,6 +210,48 @@ window.BENCHMARK_DATA = {
             "value": 143.65595094910984,
             "unit": "ns",
             "range": "± 15.684479884057408"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "artur.sawicki@gmail.com",
+            "name": "asawicki",
+            "username": "asawicki"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9063cd01e3d2775d6c3816303c300d59844f7bab",
+          "message": "Merge pull request #4 from asawicki/fix_tier3\n\nImplement scoped service resolution in Command and Query Dispatchers;…",
+          "timestamp": "2026-02-27T20:52:06+01:00",
+          "tree_id": "beaad44df3750fbf11837951d0f95b18b2799b9b",
+          "url": "https://github.com/asawicki/nexum/commit/9063cd01e3d2775d6c3816303c300d59844f7bab"
+        },
+        "date": 1772222093979,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleCommand",
+            "value": 68.85157468795776,
+            "unit": "ns",
+            "range": "± 0.07885786064991725"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3Behaviors",
+            "value": 176.828755798011,
+            "unit": "ns",
+            "range": "± 2.0912675726323737"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_5NotificationHandlers",
+            "value": 128.46023848961138,
+            "unit": "ns",
+            "range": "± 2.254198168332087"
           }
         ]
       }
