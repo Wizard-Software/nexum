@@ -34,6 +34,21 @@ internal static class DispatchDepthGuard
     }
 
     /// <summary>
+    /// Validates that the current dispatch depth has not exceeded the maximum.
+    /// Does not increment the depth counter. Used for stream intercepted dispatch
+    /// where depth validation must happen synchronously before async iteration begins.
+    /// </summary>
+    /// <param name="maxDepth">The maximum allowed dispatch depth.</param>
+    /// <exception cref="NexumDispatchDepthExceededException">Thrown when the current depth has reached or exceeded the maximum.</exception>
+    public static void ValidateCanEnter(int maxDepth)
+    {
+        if (s_depth.Value >= maxDepth)
+        {
+            throw new NexumDispatchDepthExceededException(maxDepth);
+        }
+    }
+
+    /// <summary>
     /// Disposable scope that decrements dispatch depth on disposal.
     /// Returned as struct to avoid boxing allocation.
     /// </summary>

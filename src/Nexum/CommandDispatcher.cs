@@ -33,6 +33,7 @@ public sealed class CommandDispatcher : ICommandDispatcher, IInterceptableDispat
     private readonly IServiceProvider _serviceProvider;
     private readonly NexumOptions _options;
     private readonly ExceptionHandlerResolver _exceptionHandlerResolver;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     /// <summary>
     /// Cache of handler wrappers for the runtime path.
@@ -96,6 +97,7 @@ public sealed class CommandDispatcher : ICommandDispatcher, IInterceptableDispat
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         _options = options ?? throw new ArgumentNullException(nameof(options));
         _exceptionHandlerResolver = serviceProvider.GetRequiredService<ExceptionHandlerResolver>();
+        _scopeFactory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
 
         // Tier 2: Setup compiled pipeline detection
         _pipelineRegistryType = options.PipelineRegistryType;
@@ -508,18 +510,21 @@ public sealed class CommandDispatcher : ICommandDispatcher, IInterceptableDispat
         CancellationToken ct)
         where TCommand : ICommand<TResult>
     {
+        AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
         try
         {
-            ValueTask<TResult> task = compiledPipeline(command, _serviceProvider, ct);
+            ValueTask<TResult> task = compiledPipeline(command, scope.ServiceProvider, ct);
             if (task.IsCompletedSuccessfully)
             {
+                scope.Dispose();
                 return task; // async elision
             }
 
-            return AwaitInterceptedCommandWithExceptionHandlingAsync(command, task, ct);
+            return AwaitInterceptedCommandWithScopeAsync(command, scope, task, ct);
         }
         catch (Exception ex)
         {
+            scope.Dispose();
             return HandleInterceptedCommandSyncExceptionAsync<TCommand, TResult>(command, ex, ct);
         }
     }
@@ -531,10 +536,11 @@ public sealed class CommandDispatcher : ICommandDispatcher, IInterceptableDispat
         where TCommand : ICommand<TResult>
     {
         using DispatchDepthGuard.DepthGuardScope depthGuard = DispatchDepthGuard.Enter(_options.MaxDispatchDepth);
+        AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
 
         try
         {
-            return await compiledPipeline(command, _serviceProvider, ct).ConfigureAwait(false);
+            return await compiledPipeline(command, scope.ServiceProvider, ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -543,10 +549,15 @@ public sealed class CommandDispatcher : ICommandDispatcher, IInterceptableDispat
                 .ConfigureAwait(false);
             throw; // ALWAYS re-throw (Z5)
         }
+        finally
+        {
+            await scope.DisposeAsync().ConfigureAwait(false);
+        }
     }
 
-    private async ValueTask<TResult> AwaitInterceptedCommandWithExceptionHandlingAsync<TCommand, TResult>(
+    private async ValueTask<TResult> AwaitInterceptedCommandWithScopeAsync<TCommand, TResult>(
         TCommand command,
+        AsyncServiceScope scope,
         ValueTask<TResult> task,
         CancellationToken ct)
         where TCommand : ICommand<TResult>
@@ -561,6 +572,10 @@ public sealed class CommandDispatcher : ICommandDispatcher, IInterceptableDispat
                 .InvokeCommandExceptionHandlersAsync(command, ex, ct)
                 .ConfigureAwait(false);
             throw; // ALWAYS re-throw (Z5)
+        }
+        finally
+        {
+            await scope.DisposeAsync().ConfigureAwait(false);
         }
     }
 

@@ -274,6 +274,153 @@ public sealed class InterceptableDispatcherIntegrationTests : IDisposable
 
     #endregion
 
+    #region Tier 3 with ValidateScopes — Scoped Resolution
+
+    [Fact]
+    public async Task Tier3_WithValidateScopes_Command_ResolvesScopedHandlerAsync()
+    {
+        // Arrange
+        var command = new IntegrationCommand("validate-scopes");
+
+        var services = new ServiceCollection();
+        services.AddSingleton(new NexumOptions { MaxDispatchDepth = int.MaxValue });
+        services.AddSingleton<Microsoft.Extensions.Logging.ILogger<ExceptionHandlerResolver>>(
+            NullLogger<ExceptionHandlerResolver>.Instance);
+        services.AddSingleton<ExceptionHandlerResolver>();
+        services.AddSingleton<ICommandDispatcher, CommandDispatcher>();
+        services.AddScoped<IntegrationCommandHandler>();
+
+        using ServiceProvider sp = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+        var dispatcher = sp.GetRequiredService<ICommandDispatcher>();
+        var interceptable = (IInterceptableDispatcher)dispatcher;
+
+        // Act — must not throw InvalidOperationException for scoped resolution
+        string result = await interceptable.DispatchInterceptedCommandAsync(
+            command,
+            static (cmd, scopedSp, ct) => scopedSp.GetRequiredService<IntegrationCommandHandler>().HandleAsync(cmd, ct),
+            CancellationToken.None);
+
+        // Assert
+        result.Should().Be("result:validate-scopes");
+    }
+
+    [Fact]
+    public async Task Tier3_WithValidateScopes_Query_ResolvesScopedHandlerAsync()
+    {
+        // Arrange
+        var query = new IntegrationQuery("validate-scopes-query");
+
+        var services = new ServiceCollection();
+        services.AddSingleton(new NexumOptions { MaxDispatchDepth = int.MaxValue });
+        services.AddSingleton<Microsoft.Extensions.Logging.ILogger<ExceptionHandlerResolver>>(
+            NullLogger<ExceptionHandlerResolver>.Instance);
+        services.AddSingleton<ExceptionHandlerResolver>();
+        services.AddSingleton<IQueryDispatcher, QueryDispatcher>();
+        services.AddScoped<IntegrationQueryHandler>();
+
+        using ServiceProvider sp = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+        var dispatcher = sp.GetRequiredService<IQueryDispatcher>();
+        var interceptable = (IInterceptableDispatcher)dispatcher;
+
+        // Act
+        string result = await interceptable.DispatchInterceptedQueryAsync(
+            query,
+            static (qry, scopedSp, ct) => scopedSp.GetRequiredService<IntegrationQueryHandler>().HandleAsync(qry, ct),
+            CancellationToken.None);
+
+        // Assert
+        result.Should().Be("query-result:validate-scopes-query");
+    }
+
+    [Fact]
+    public async Task Tier3_WithValidateScopes_StreamQuery_ResolvesScopedHandlerAsync()
+    {
+        // Arrange
+        var query = new IntegrationStreamQuery(Count: 3);
+
+        var services = new ServiceCollection();
+        services.AddSingleton(new NexumOptions { MaxDispatchDepth = int.MaxValue });
+        services.AddSingleton<Microsoft.Extensions.Logging.ILogger<ExceptionHandlerResolver>>(
+            NullLogger<ExceptionHandlerResolver>.Instance);
+        services.AddSingleton<ExceptionHandlerResolver>();
+        services.AddSingleton<IQueryDispatcher, QueryDispatcher>();
+        services.AddScoped<IntegrationStreamQueryHandler>();
+
+        using ServiceProvider sp = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+        var dispatcher = sp.GetRequiredService<IQueryDispatcher>();
+        var interceptable = (IInterceptableDispatcher)dispatcher;
+
+        // Act
+        var results = new List<int>();
+        await foreach (int item in interceptable.StreamInterceptedAsync(
+            query,
+            static (qry, scopedSp, ct) => scopedSp.GetRequiredService<IntegrationStreamQueryHandler>().HandleAsync(qry, ct),
+            CancellationToken.None))
+        {
+            results.Add(item);
+        }
+
+        // Assert
+        results.Should().ContainInOrder(0, 1, 2);
+        results.Count.Should().Be(3);
+    }
+
+    [Fact]
+    public async Task Tier3_WithValidateScopes_CommandWithBehaviors_ResolvesScopedServicesAsync()
+    {
+        // Arrange
+        var command = new IntegrationCommand("scoped-behaviors");
+        var executionLog = new List<string>();
+
+        var services = new ServiceCollection();
+        services.AddSingleton(new NexumOptions { MaxDispatchDepth = int.MaxValue });
+        services.AddSingleton<Microsoft.Extensions.Logging.ILogger<ExceptionHandlerResolver>>(
+            NullLogger<ExceptionHandlerResolver>.Instance);
+        services.AddSingleton<ExceptionHandlerResolver>();
+        services.AddSingleton<ICommandDispatcher, CommandDispatcher>();
+        services.AddScoped<IntegrationCommandHandler>(_ => new IntegrationCommandHandler(executionLog));
+        services.AddScoped<IntegrationCommandBehavior1>(_ => new IntegrationCommandBehavior1(executionLog));
+        services.AddScoped<IntegrationCommandBehavior2>(_ => new IntegrationCommandBehavior2(executionLog));
+
+        using ServiceProvider sp = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+        var dispatcher = sp.GetRequiredService<ICommandDispatcher>();
+        var interceptable = (IInterceptableDispatcher)dispatcher;
+
+        // Compiled pipeline with behaviors — resolves all from scoped provider
+        async ValueTask<string> CompiledPipelineWithBehaviorsAsync(
+            IntegrationCommand cmd,
+            IServiceProvider scopedSp,
+            CancellationToken ct)
+        {
+            var behavior1 = scopedSp.GetRequiredService<IntegrationCommandBehavior1>();
+            var behavior2 = scopedSp.GetRequiredService<IntegrationCommandBehavior2>();
+            var handler = scopedSp.GetRequiredService<IntegrationCommandHandler>();
+
+            return await behavior1.HandleAsync(cmd,
+                async ct2 => await behavior2.HandleAsync(cmd,
+                    ct3 => handler.HandleAsync(cmd, ct3),
+                    ct2),
+                ct);
+        }
+
+        // Act
+        string result = await interceptable.DispatchInterceptedCommandAsync(
+            command,
+            CompiledPipelineWithBehaviorsAsync,
+            CancellationToken.None);
+
+        // Assert
+        result.Should().Be("result:scoped-behaviors");
+        executionLog.Should().ContainInOrder(
+            "Behavior1:Before",
+            "Behavior2:Before",
+            "Handler",
+            "Behavior2:After",
+            "Behavior1:After");
+    }
+
+    #endregion
+
     #region Helper Methods
 
     private static ServiceProvider CreateRuntimeServiceProviderForCommand()

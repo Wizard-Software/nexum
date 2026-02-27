@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using Nexum.Abstractions;
 using Nexum.Internal;
@@ -42,6 +43,7 @@ public sealed class QueryDispatcher : IQueryDispatcher, IInterceptableDispatcher
     private readonly IServiceProvider _serviceProvider;
     private readonly NexumOptions _options;
     private readonly ExceptionHandlerResolver _exceptionHandlerResolver;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     /// <summary>
     /// Cache of query handler wrappers for the runtime path.
@@ -126,6 +128,7 @@ public sealed class QueryDispatcher : IQueryDispatcher, IInterceptableDispatcher
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         _options = options ?? throw new ArgumentNullException(nameof(options));
         _exceptionHandlerResolver = serviceProvider.GetRequiredService<ExceptionHandlerResolver>();
+        _scopeFactory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
 
         // Tier 2: Setup compiled pipeline detection
         _pipelineRegistryType = options.PipelineRegistryType;
@@ -661,24 +664,33 @@ public sealed class QueryDispatcher : IQueryDispatcher, IInterceptableDispatcher
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        // Step 1: Validate dispatch depth (synchronous setup)
-        DispatchDepthGuard.DepthGuardScope depthGuardScope = default;
-        bool depthGuardActive = _options.MaxDispatchDepth < int.MaxValue;
+        // Validate dispatch depth synchronously (existing tests assert sync throw on depth exceeded)
+        if (_options.MaxDispatchDepth < int.MaxValue)
+        {
+            DispatchDepthGuard.ValidateCanEnter(_options.MaxDispatchDepth);
+        }
+
+        return StreamInterceptedWithScopeAsync(query, compiledPipeline, ct);
+    }
+
+    private async IAsyncEnumerable<TResult> StreamInterceptedWithScopeAsync<TQuery, TResult>(
+        TQuery query,
+        Func<TQuery, IServiceProvider, CancellationToken, IAsyncEnumerable<TResult>> compiledPipeline,
+        [EnumeratorCancellation] CancellationToken ct)
+        where TQuery : IStreamQuery<TResult>
+    {
+        AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
         try
         {
-            if (depthGuardActive)
+            await foreach (TResult item in compiledPipeline(query, scope.ServiceProvider, ct)
+                .WithCancellation(ct).ConfigureAwait(false))
             {
-                depthGuardScope = DispatchDepthGuard.Enter(_options.MaxDispatchDepth);
+                yield return item;
             }
-
-            return compiledPipeline(query, _serviceProvider, ct);
         }
         finally
         {
-            if (depthGuardActive)
-            {
-                depthGuardScope.Dispose();
-            }
+            await scope.DisposeAsync().ConfigureAwait(false);
         }
     }
 
@@ -688,18 +700,21 @@ public sealed class QueryDispatcher : IQueryDispatcher, IInterceptableDispatcher
         CancellationToken ct)
         where TQuery : IQuery<TResult>
     {
+        AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
         try
         {
-            ValueTask<TResult> task = compiledPipeline(query, _serviceProvider, ct);
+            ValueTask<TResult> task = compiledPipeline(query, scope.ServiceProvider, ct);
             if (task.IsCompletedSuccessfully)
             {
+                scope.Dispose();
                 return task; // async elision
             }
 
-            return AwaitInterceptedQueryWithExceptionHandlingAsync(query, task, ct);
+            return AwaitInterceptedQueryWithScopeAsync(query, scope, task, ct);
         }
         catch (Exception ex)
         {
+            scope.Dispose();
             return HandleInterceptedQuerySyncExceptionAsync<TQuery, TResult>(query, ex, ct);
         }
     }
@@ -711,10 +726,11 @@ public sealed class QueryDispatcher : IQueryDispatcher, IInterceptableDispatcher
         where TQuery : IQuery<TResult>
     {
         using DispatchDepthGuard.DepthGuardScope depthGuard = DispatchDepthGuard.Enter(_options.MaxDispatchDepth);
+        AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
 
         try
         {
-            return await compiledPipeline(query, _serviceProvider, ct).ConfigureAwait(false);
+            return await compiledPipeline(query, scope.ServiceProvider, ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -723,10 +739,15 @@ public sealed class QueryDispatcher : IQueryDispatcher, IInterceptableDispatcher
                 .ConfigureAwait(false);
             throw; // ALWAYS re-throw (Z5)
         }
+        finally
+        {
+            await scope.DisposeAsync().ConfigureAwait(false);
+        }
     }
 
-    private async ValueTask<TResult> AwaitInterceptedQueryWithExceptionHandlingAsync<TQuery, TResult>(
+    private async ValueTask<TResult> AwaitInterceptedQueryWithScopeAsync<TQuery, TResult>(
         TQuery query,
+        AsyncServiceScope scope,
         ValueTask<TResult> task,
         CancellationToken ct)
         where TQuery : IQuery<TResult>
@@ -741,6 +762,10 @@ public sealed class QueryDispatcher : IQueryDispatcher, IInterceptableDispatcher
                 .InvokeQueryExceptionHandlersAsync(query, ex, ct)
                 .ConfigureAwait(false);
             throw; // ALWAYS re-throw (Z5)
+        }
+        finally
+        {
+            await scope.DisposeAsync().ConfigureAwait(false);
         }
     }
 
