@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1772222094417,
+  "lastUpdate": 1772277676331,
   "repoUrl": "https://github.com/asawicki/nexum",
   "entries": {
     "Benchmark": [
@@ -252,6 +252,48 @@ window.BENCHMARK_DATA = {
             "value": 128.46023848961138,
             "unit": "ns",
             "range": "± 2.254198168332087"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "artur.sawicki@gmail.com",
+            "name": "asawicki",
+            "username": "asawicki"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "25428204b8d86e187209710526dc145918231efd",
+          "message": "Merge pull request #5 from asawicki/add_doc_improve_otel\n\nEnhance Nexum OpenTelemetry integration by implementing IInterceptabl…",
+          "timestamp": "2026-02-28T12:18:16+01:00",
+          "tree_id": "a67494140665132842116db8f9dd982a7a3ae5a1",
+          "url": "https://github.com/asawicki/nexum/commit/25428204b8d86e187209710526dc145918231efd"
+        },
+        "date": 1772277675922,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleCommand",
+            "value": 79.32379741801157,
+            "unit": "ns",
+            "range": "± 5.396512423053209"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3Behaviors",
+            "value": 179.08069650880222,
+            "unit": "ns",
+            "range": "± 3.5425953270423336"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_5NotificationHandlers",
+            "value": 134.4759254370417,
+            "unit": "ns",
+            "range": "± 7.358356907734152"
           }
         ]
       }
