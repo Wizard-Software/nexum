@@ -13,13 +13,14 @@ public sealed class NexumTelemetryIntegrationTests
         // Arrange
         var services = new ServiceCollection();
 
-        // Mock all three dispatchers (AddNexumTelemetry decorates all three)
-        var innerCommand = Substitute.For<ICommandDispatcher>();
+        // Mock all three dispatchers (AddNexumTelemetry decorates all three).
+        // The tracing decorators require inner dispatchers to also implement IInterceptableDispatcher.
+        var innerCommand = Substitute.For<ICommandDispatcher, IInterceptableDispatcher>();
         innerCommand.DispatchAsync(Arg.Any<ICommand<string>>(), Arg.Any<CancellationToken>())
             .Returns(new ValueTask<string>("result"));
         services.AddSingleton<ICommandDispatcher>(innerCommand);
 
-        var innerQuery = Substitute.For<IQueryDispatcher>();
+        var innerQuery = Substitute.For<IQueryDispatcher, IInterceptableDispatcher>();
         services.AddSingleton<IQueryDispatcher>(innerQuery);
 
         var innerPublisher = Substitute.For<INotificationPublisher>();
@@ -62,11 +63,12 @@ public sealed class NexumTelemetryIntegrationTests
         // Arrange
         var services = new ServiceCollection();
 
-        // Mock all three dispatchers (AddNexumTelemetry decorates all three)
-        var innerCommand = Substitute.For<ICommandDispatcher>();
+        // Mock all three dispatchers (AddNexumTelemetry decorates all three).
+        // The tracing decorators require inner dispatchers to also implement IInterceptableDispatcher.
+        var innerCommand = Substitute.For<ICommandDispatcher, IInterceptableDispatcher>();
         services.AddSingleton<ICommandDispatcher>(innerCommand);
 
-        var innerQuery = Substitute.For<IQueryDispatcher>();
+        var innerQuery = Substitute.For<IQueryDispatcher, IInterceptableDispatcher>();
         innerQuery.DispatchAsync(Arg.Any<IQuery<string>>(), Arg.Any<CancellationToken>())
             .Returns(new ValueTask<string>("query-result"));
         services.AddSingleton<IQueryDispatcher>(innerQuery);
@@ -111,11 +113,12 @@ public sealed class NexumTelemetryIntegrationTests
         // Arrange
         var services = new ServiceCollection();
 
-        // Mock all three dispatchers (AddNexumTelemetry decorates all three)
-        var innerCommand = Substitute.For<ICommandDispatcher>();
+        // Mock all three dispatchers (AddNexumTelemetry decorates all three).
+        // The tracing decorators require inner dispatchers to also implement IInterceptableDispatcher.
+        var innerCommand = Substitute.For<ICommandDispatcher, IInterceptableDispatcher>();
         services.AddSingleton<ICommandDispatcher>(innerCommand);
 
-        var innerQuery = Substitute.For<IQueryDispatcher>();
+        var innerQuery = Substitute.For<IQueryDispatcher, IInterceptableDispatcher>();
         services.AddSingleton<IQueryDispatcher>(innerQuery);
 
         var innerPublisher = Substitute.For<INotificationPublisher>();
