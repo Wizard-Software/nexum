@@ -20,7 +20,7 @@ public sealed class TracingCommandDispatcherTests
         using var listener = CreateActivityListener(uniqueSourceName, activities);
         ActivitySource.AddActivityListener(listener);
 
-        var inner = Substitute.For<ICommandDispatcher>();
+        var inner = Substitute.For<ICommandDispatcher, IInterceptableDispatcher>();
         inner.DispatchAsync(Arg.Any<ICommand<string>>(), Arg.Any<CancellationToken>())
             .Returns(new ValueTask<string>(ExpectedResult));
 
@@ -58,7 +58,7 @@ public sealed class TracingCommandDispatcherTests
         using var listener = CreateActivityListener(uniqueSourceName, activities);
         ActivitySource.AddActivityListener(listener);
 
-        var inner = Substitute.For<ICommandDispatcher>();
+        var inner = Substitute.For<ICommandDispatcher, IInterceptableDispatcher>();
         var exception = new InvalidOperationException(ErrorMessage);
         inner.DispatchAsync(Arg.Any<ICommand<string>>(), Arg.Any<CancellationToken>())
             .Returns(ValueTask.FromException<string>(exception));
@@ -96,7 +96,7 @@ public sealed class TracingCommandDispatcherTests
         using var listener = CreateActivityListener(uniqueSourceName, activities);
         ActivitySource.AddActivityListener(listener);
 
-        var inner = Substitute.For<ICommandDispatcher>();
+        var inner = Substitute.For<ICommandDispatcher, IInterceptableDispatcher>();
         inner.DispatchAsync(Arg.Any<ICommand<string>>(), Arg.Any<CancellationToken>())
             .Returns(new ValueTask<string>(ExpectedResult));
 
@@ -132,7 +132,7 @@ public sealed class TracingCommandDispatcherTests
 
         using var collector = new MetricCollector<long>(instrumentation.DispatchCount);
 
-        var inner = Substitute.For<ICommandDispatcher>();
+        var inner = Substitute.For<ICommandDispatcher, IInterceptableDispatcher>();
         inner.DispatchAsync(Arg.Any<ICommand<string>>(), Arg.Any<CancellationToken>())
             .Returns(new ValueTask<string>(ExpectedResult));
 
@@ -157,7 +157,211 @@ public sealed class TracingCommandDispatcherTests
         statusTag.Should().Be("success");
     }
 
+    [Fact]
+    public void Constructor_WhenInnerDoesNotImplementIInterceptableDispatcher_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var uniqueSourceName = $"Test.{Guid.NewGuid()}";
+        var options = new NexumTelemetryOptions { ActivitySourceName = uniqueSourceName };
+        using var instrumentation = new NexumInstrumentation(options);
+
+        // A plain ICommandDispatcher mock that does NOT implement IInterceptableDispatcher
+        var inner = Substitute.For<ICommandDispatcher>();
+
+        // Act
+        Action act = () => _ = new TracingCommandDispatcher(inner, options, instrumentation);
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public async Task DispatchInterceptedCommandAsync_WithTracingEnabled_CreatesActivityAsync()
+    {
+        // Arrange
+        const string ExpectedResult = "intercepted-result";
+        var uniqueSourceName = $"Test.{Guid.NewGuid()}";
+        var options = new NexumTelemetryOptions
+        {
+            ActivitySourceName = uniqueSourceName,
+            EnableTracing = true,
+            EnableMetrics = false
+        };
+        using var instrumentation = new NexumInstrumentation(options);
+
+        var activities = new List<Activity>();
+        using var listener = CreateActivityListener(uniqueSourceName, activities);
+        ActivitySource.AddActivityListener(listener);
+
+        // Create a mock implementing BOTH ICommandDispatcher AND IInterceptableDispatcher
+        var inner = Substitute.For<ICommandDispatcher, IInterceptableDispatcher>();
+        ((IInterceptableDispatcher)inner)
+            .DispatchInterceptedCommandAsync(
+                Arg.Any<TestCommand>(),
+                Arg.Any<Func<TestCommand, IServiceProvider, CancellationToken, ValueTask<string>>>(),
+                Arg.Any<CancellationToken>())
+            .Returns(new ValueTask<string>(ExpectedResult));
+
+        var sut = new TracingCommandDispatcher(inner, options, instrumentation);
+        var command = new TestCommand("test");
+        Func<TestCommand, IServiceProvider, CancellationToken, ValueTask<string>> pipeline =
+            (_, _, _) => new ValueTask<string>(ExpectedResult);
+
+        // Act
+        string result = await ((IInterceptableDispatcher)sut)
+            .DispatchInterceptedCommandAsync(command, pipeline, CancellationToken.None);
+
+        // Assert
+        result.Should().Be(ExpectedResult);
+        activities.Should().HaveCount(1);
+
+        Activity activity = activities[0];
+        activity.DisplayName.Should().Be("Nexum.Command TestCommand");
+        activity.Status.Should().Be(ActivityStatusCode.Ok);
+        activity.GetTagItem("nexum.command.type").Should().Be("TestCommand");
+        activity.GetTagItem("nexum.command.result_type").Should().Be("String");
+    }
+
+    [Fact]
+    public async Task DispatchInterceptedCommandAsync_WithMetricsEnabled_RecordsMetricsAsync()
+    {
+        // Arrange
+        const string ExpectedResult = "intercepted-result";
+        var uniqueSourceName = $"Test.{Guid.NewGuid()}";
+        var options = new NexumTelemetryOptions
+        {
+            ActivitySourceName = uniqueSourceName,
+            EnableTracing = false,
+            EnableMetrics = true
+        };
+        using var instrumentation = new NexumInstrumentation(options);
+        using var collector = new MetricCollector<long>(instrumentation.DispatchCount);
+
+        // Create a mock implementing BOTH ICommandDispatcher AND IInterceptableDispatcher
+        var inner = Substitute.For<ICommandDispatcher, IInterceptableDispatcher>();
+        ((IInterceptableDispatcher)inner)
+            .DispatchInterceptedCommandAsync(
+                Arg.Any<TestCommand>(),
+                Arg.Any<Func<TestCommand, IServiceProvider, CancellationToken, ValueTask<string>>>(),
+                Arg.Any<CancellationToken>())
+            .Returns(new ValueTask<string>(ExpectedResult));
+
+        var sut = new TracingCommandDispatcher(inner, options, instrumentation);
+        var command = new TestCommand("test");
+        Func<TestCommand, IServiceProvider, CancellationToken, ValueTask<string>> pipeline =
+            (_, _, _) => new ValueTask<string>(ExpectedResult);
+
+        // Act
+        string result = await ((IInterceptableDispatcher)sut)
+            .DispatchInterceptedCommandAsync(command, pipeline, CancellationToken.None);
+
+        // Assert
+        result.Should().Be(ExpectedResult);
+
+        CollectedMeasurement<long>[] measurements = collector.GetMeasurementSnapshot().ToArray();
+        measurements.Should().HaveCount(1);
+        measurements[0].Value.Should().Be(1);
+
+        string? typeTag = measurements[0].Tags.ToArray().FirstOrDefault(t => t.Key == "type").Value as string;
+        typeTag.Should().Be("TestCommand");
+
+        string? statusTag = measurements[0].Tags.ToArray().FirstOrDefault(t => t.Key == "status").Value as string;
+        statusTag.Should().Be("success");
+    }
+
+    [Fact]
+    public async Task DispatchInterceptedCommandAsync_WithBothDisabled_DelegatesDirectlyToInnerAsync()
+    {
+        // Arrange
+        const string ExpectedResult = "intercepted-result";
+        var uniqueSourceName = $"Test.{Guid.NewGuid()}";
+        var options = new NexumTelemetryOptions
+        {
+            ActivitySourceName = uniqueSourceName,
+            EnableTracing = false,
+            EnableMetrics = false
+        };
+        using var instrumentation = new NexumInstrumentation(options);
+
+        var activities = new List<Activity>();
+        using var listener = CreateActivityListener(uniqueSourceName, activities);
+        ActivitySource.AddActivityListener(listener);
+
+        // Create a mock implementing BOTH ICommandDispatcher AND IInterceptableDispatcher
+        var inner = Substitute.For<ICommandDispatcher, IInterceptableDispatcher>();
+        ((IInterceptableDispatcher)inner)
+            .DispatchInterceptedCommandAsync(
+                Arg.Any<TestCommand>(),
+                Arg.Any<Func<TestCommand, IServiceProvider, CancellationToken, ValueTask<string>>>(),
+                Arg.Any<CancellationToken>())
+            .Returns(new ValueTask<string>(ExpectedResult));
+
+        var sut = new TracingCommandDispatcher(inner, options, instrumentation);
+        var command = new TestCommand("test");
+        Func<TestCommand, IServiceProvider, CancellationToken, ValueTask<string>> pipeline =
+            (_, _, _) => new ValueTask<string>(ExpectedResult);
+
+        // Act
+        string result = await ((IInterceptableDispatcher)sut)
+            .DispatchInterceptedCommandAsync(command, pipeline, CancellationToken.None);
+
+        // Assert
+        result.Should().Be(ExpectedResult);
+        activities.Should().BeEmpty();
+
+        await ((IInterceptableDispatcher)inner).Received(1).DispatchInterceptedCommandAsync(
+            command,
+            Arg.Any<Func<TestCommand, IServiceProvider, CancellationToken, ValueTask<string>>>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public void DispatchInterceptedQueryAsync_ThrowsNotSupportedException()
+    {
+        // Arrange
+        var uniqueSourceName = $"Test.{Guid.NewGuid()}";
+        var options = new NexumTelemetryOptions { ActivitySourceName = uniqueSourceName };
+        using var instrumentation = new NexumInstrumentation(options);
+
+        var inner = Substitute.For<ICommandDispatcher, IInterceptableDispatcher>();
+        var sut = new TracingCommandDispatcher(inner, options, instrumentation);
+        var interceptable = (IInterceptableDispatcher)sut;
+
+        // Act
+        Action act = () => interceptable.DispatchInterceptedQueryAsync<TestQuery, string>(
+            new TestQuery("test"),
+            (_, _, _) => new ValueTask<string>("result"),
+            CancellationToken.None);
+
+        // Assert
+        act.Should().Throw<NotSupportedException>();
+    }
+
+    [Fact]
+    public void StreamInterceptedAsync_ThrowsNotSupportedException()
+    {
+        // Arrange
+        var uniqueSourceName = $"Test.{Guid.NewGuid()}";
+        var options = new NexumTelemetryOptions { ActivitySourceName = uniqueSourceName };
+        using var instrumentation = new NexumInstrumentation(options);
+
+        var inner = Substitute.For<ICommandDispatcher, IInterceptableDispatcher>();
+        var sut = new TracingCommandDispatcher(inner, options, instrumentation);
+        var interceptable = (IInterceptableDispatcher)sut;
+
+        // Act
+        Action act = () => interceptable.StreamInterceptedAsync<TestStreamQuery, int>(
+            new TestStreamQuery(1),
+            (_, _, _) => AsyncEnumerable.Empty<int>(),
+            CancellationToken.None);
+
+        // Assert
+        act.Should().Throw<NotSupportedException>();
+    }
+
     private sealed record TestCommand(string Value) : ICommand<string>;
+    private sealed record TestQuery(string Value) : IQuery<string>;
+    private sealed record TestStreamQuery(int Count) : IStreamQuery<int>;
 
     private static ActivityListener CreateActivityListener(string sourceName, List<Activity> activities)
     {

@@ -282,8 +282,10 @@ The `Nexum.Extensions.AspNetCore` package provides middleware, endpoint routing 
 | `Nexum` | Dispatchers (`CommandDispatcher`, `QueryDispatcher`, `NotificationPublisher`), pipeline middleware. |
 | `Nexum.OpenTelemetry` | `ActivitySource`, metrics, `System.Diagnostics` integration. |
 | `Nexum.Results` | Optional `Result<T, TError>`, `NexumError`, `IResultAdapter`. |
+| `Nexum.Results.FluentValidation` | FluentValidation integration for the Result pattern. |
 | `Nexum.Extensions.DependencyInjection` | `IServiceCollection.AddNexum()` extensions. |
 | `Nexum.Extensions.AspNetCore` | Middleware, endpoint routing, Problem Details integration. |
+| `Nexum.Batching` | Automatic query batching with configurable windows and deduplication. |
 
 ## Benchmarks
 
@@ -355,16 +357,20 @@ See [MIGRATION.md](MIGRATION.md) for a complete step-by-step migration guide wit
 
 ## Documentation
 
-Nexum includes comprehensive architecture documentation covering:
+Full documentation is available in the [`doc/`](doc/) directory:
 
-- **Getting Started** -- installation, minimal examples, and step-by-step tutorials.
-- **Public API Reference** -- complete interface and method documentation for all packages.
-- **Configuration** -- `NexumOptions`, behavior ordering, publish strategies, and DI setup.
-- **Architecture Internals** -- dispatcher implementation, pipeline builder, handler resolution, and caching.
-- **Extension Points** -- behaviors, exception handlers, notifications, and custom strategies.
-- **Design Patterns** -- CQRS conventions, Result pattern integration, and testing strategies.
-- **Testing Strategy** -- unit testing handlers, integration testing pipelines, and mocking dispatchers.
-- **Architecture Decision Records (ADRs)** -- rationale behind key design choices.
+- [**Getting Started**](doc/getting-started.md) -- installation, requirements, and your first command.
+- [**Commands and Queries**](doc/commands-and-queries.md) -- core CQRS types, handlers, and dispatching.
+- [**Notifications**](doc/notifications.md) -- domain events and publish strategies.
+- [**Pipeline Behaviors**](doc/behaviors.md) -- cross-cutting concerns via the Russian doll model.
+- [**Exception Handlers**](doc/exception-handlers.md) -- structured exception handling outside the pipeline.
+- [**Configuration**](doc/configuration.md) -- `NexumOptions`, DI registration, and handler lifetimes.
+- [**OpenTelemetry**](doc/opentelemetry.md) -- built-in distributed tracing and metrics.
+- [**Result Pattern**](doc/results.md) -- explicit error handling with `Result<T>`.
+- [**ASP.NET Core Integration**](doc/aspnetcore.md) -- middleware, endpoint mapping, and Problem Details.
+- [**Batching**](doc/batching.md) -- automatic query batching and deduplication.
+- [**Source Generators**](doc/source-generators.md) -- tiered compile-time acceleration.
+- [**API Reference**](doc/api-reference.md) -- complete public API surface.
 
 ## License
 
