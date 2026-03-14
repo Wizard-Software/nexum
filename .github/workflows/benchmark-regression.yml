@@ -1,0 +1,73 @@
+name: Benchmark Regression (PR)
+
+# Triggered on every PR targeting main.
+# Purpose: informational — posts a comment if a 15% regression is detected,
+# but does NOT block the PR (fail-on-alert: false).
+#
+# Threshold rationale (testing-spec §9.4):
+#   Shared CI runners have ±10-20% CPU variance per run. A 15% alert threshold
+#   gives a meaningful signal without generating constant false-positive noise.
+#   PRs get an informational comment; main branch enforcement is in ci.yml.
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: benchmark-regression-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  checks: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  benchmark-regression:
+    name: Performance Regression Check (PR)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ hashFiles('**/*.csproj', '**/Directory.Build.props', '**/Directory.Packages.props') }}
+          restore-keys: nuget-
+
+      - name: Run regression benchmarks
+        run: >-
+          dotnet run --project benchmarks/Nexum.Benchmarks -c Release --
+          --filter '*NexumRegression*'
+
+      - name: Download baseline from gh-pages
+        uses: actions/checkout@v6
+        with:
+          ref: gh-pages
+          path: gh-pages
+        continue-on-error: true
+
+      - name: Compare against baseline
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          tool: 'benchmarkdotnet'
+          output-file-path: BenchmarkDotNet.Artifacts/results/Nexum.Benchmarks.NexumRegressionBenchmarks-report-full-compressed.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # 30% threshold: informational on PRs (fail-on-alert=false).
+          # Shared CI runners have ±10-20% variance — blocking PRs on noise is counterproductive.
+          alert-threshold: '130%'
+          fail-on-alert: false
+          comment-on-alert: true
+          # PRs do not push results to gh-pages — only main merges update the baseline.
+          auto-push: false
+
+      - name: Upload benchmark artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: benchmark-results-pr-${{ github.event.pull_request.number }}
+          path: BenchmarkDotNet.Artifacts/

@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using Nexum.Abstractions;
 
 namespace Nexum.Internal;
@@ -73,7 +74,10 @@ internal static class PolymorphicHandlerResolver
     /// After the first resolution (warm-up), subsequent calls return cached results in O(1) time (~20ns).
     /// </para>
     /// </remarks>
-    public static Type? Resolve(Type messageType, Type handlerOpenGeneric, IServiceProvider serviceProvider)
+    public static Type? Resolve(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.Interfaces)] Type messageType,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type handlerOpenGeneric,
+        IServiceProvider serviceProvider)
     {
         var key = (messageType, handlerOpenGeneric);
         var lazy = s_cache.GetOrAdd(key, _ => new Lazy<Type?>(
@@ -111,7 +115,10 @@ internal static class PolymorphicHandlerResolver
     /// <item>Return <c>null</c> if no match is found in the entire hierarchy</item>
     /// </list>
     /// </remarks>
-    private static Type? ResolveCore(Type messageType, Type handlerOpenGeneric, IServiceProvider serviceProvider)
+    private static Type? ResolveCore(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.Interfaces)] Type messageType,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type handlerOpenGeneric,
+        IServiceProvider serviceProvider)
     {
         // Step 1: Get the message interface open generic (e.g., ICommandHandler<,> → ICommand<>)
         if (!s_handlerToMessageInterfaceMap.TryGetValue(handlerOpenGeneric, out var messageInterfaceOpenGeneric))

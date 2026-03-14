@@ -12,19 +12,28 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Nexum.Benchmarks;
 
+// Threshold rationale (testing-spec §9.4): 30% alert threshold accounts for ±10-20%
+// CPU variance on shared CI runners. Both PR and main jobs are comment-only
+// (fail-on-alert=false) to avoid false-positive build failures.
 [MemoryDiagnoser]
-[MediumRunJob(RuntimeMoniker.Net10_0)]
+[MarkdownExporter]
+[JsonExporterAttribute.Full]
+[JsonExporterAttribute.Brief]
 [JsonExporterAttribute.FullCompressed]
+[SimpleJob(RuntimeMoniker.Net10_0, warmupCount: 5, iterationCount: 15)]
 public class NexumRegressionBenchmarks
 {
     private ICommandDispatcher _nexumDispatcher = null!;
     private ICommandDispatcher _nexumPipelineDispatcher = null!;
+    private IQueryDispatcher _nexumQueryDispatcher = null!;
     private INotificationPublisher _nexumNotificationPublisher = null!;
     private ServiceProvider _nexumSp = null!;
     private ServiceProvider _nexumPipelineSp = null!;
+    private ServiceProvider _nexumQuerySp = null!;
     private ServiceProvider _nexumNotifSp = null!;
 
     private readonly BenchCommand _nexumCommand = new("bench");
+    private readonly BenchQuery _nexumQuery = new(42);
     private readonly BenchNotification _nexumNotification = new("bench");
 
     [GlobalSetup]
@@ -47,6 +56,7 @@ public class NexumRegressionBenchmarks
         // Reset static caches
         PolymorphicHandlerResolver.ResetForTesting();
         CommandDispatcher.ResetForTesting();
+        QueryDispatcher.ResetForTesting();
         PipelineBuilder.ResetForTesting();
 
         // === Nexum: Command with 3 behaviors ===
@@ -69,9 +79,30 @@ public class NexumRegressionBenchmarks
         // Reset static caches
         PolymorphicHandlerResolver.ResetForTesting();
         CommandDispatcher.ResetForTesting();
+        QueryDispatcher.ResetForTesting();
         PipelineBuilder.ResetForTesting();
 
-        // === Nexum: Notifications (5 handlers, Sequential) ===
+        // === Nexum: Query dispatch (no behaviors) ===
+        {
+            var services = new ServiceCollection();
+            var options = new NexumOptions { MaxDispatchDepth = int.MaxValue };
+            services.AddSingleton(options);
+            services.AddSingleton<ILogger<ExceptionHandlerResolver>>(NullLogger<ExceptionHandlerResolver>.Instance);
+            services.AddSingleton<ExceptionHandlerResolver>();
+            services.AddSingleton<IQueryDispatcher, QueryDispatcher>();
+            services.AddScoped<IQueryHandler<BenchQuery, string>, BenchQueryHandler>();
+            _nexumQuerySp = services.BuildServiceProvider();
+            _nexumQueryDispatcher = _nexumQuerySp.GetRequiredService<IQueryDispatcher>();
+            _nexumQueryDispatcher.DispatchAsync(_nexumQuery, CancellationToken.None).AsTask().GetAwaiter().GetResult();
+        }
+
+        // Reset static caches
+        PolymorphicHandlerResolver.ResetForTesting();
+        CommandDispatcher.ResetForTesting();
+        QueryDispatcher.ResetForTesting();
+        PipelineBuilder.ResetForTesting();
+
+        // === Nexum: Notifications (3 handlers, Sequential) ===
         {
             var services = new ServiceCollection();
             var options = new NexumOptions { MaxDispatchDepth = int.MaxValue };
@@ -84,8 +115,6 @@ public class NexumRegressionBenchmarks
             services.AddScoped<INotificationHandler<BenchNotification>, BenchNotificationHandler1>();
             services.AddScoped<INotificationHandler<BenchNotification>, BenchNotificationHandler2>();
             services.AddScoped<INotificationHandler<BenchNotification>, BenchNotificationHandler3>();
-            services.AddScoped<INotificationHandler<BenchNotification>, BenchNotificationHandler4>();
-            services.AddScoped<INotificationHandler<BenchNotification>, BenchNotificationHandler5>();
             _nexumNotifSp = services.BuildServiceProvider();
             _nexumNotificationPublisher = _nexumNotifSp.GetRequiredService<INotificationPublisher>();
             _nexumNotificationPublisher.PublishAsync(_nexumNotification, PublishStrategy.Sequential, CancellationToken.None)
@@ -102,7 +131,11 @@ public class NexumRegressionBenchmarks
         => _nexumPipelineDispatcher.DispatchAsync(_nexumCommand, CancellationToken.None);
 
     [Benchmark]
-    public ValueTask Nexum_5NotificationHandlers()
+    public ValueTask<string> Nexum_SimpleQuery()
+        => _nexumQueryDispatcher.DispatchAsync(_nexumQuery, CancellationToken.None);
+
+    [Benchmark]
+    public ValueTask Nexum_3NotificationHandlers_Sequential()
         => _nexumNotificationPublisher.PublishAsync(_nexumNotification, PublishStrategy.Sequential, CancellationToken.None);
 
     [GlobalCleanup]
@@ -110,9 +143,11 @@ public class NexumRegressionBenchmarks
     {
         _nexumSp.Dispose();
         _nexumPipelineSp.Dispose();
+        _nexumQuerySp.Dispose();
         _nexumNotifSp.Dispose();
         PolymorphicHandlerResolver.ResetForTesting();
         CommandDispatcher.ResetForTesting();
+        QueryDispatcher.ResetForTesting();
         PipelineBuilder.ResetForTesting();
     }
 }

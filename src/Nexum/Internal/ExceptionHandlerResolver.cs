@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Nexum.Abstractions;
 using Microsoft.Extensions.Logging;
@@ -58,6 +59,117 @@ internal sealed class ExceptionHandlerResolver(
     /// This is a cold path, but caching still improves performance on repeated exceptions of the same type.
     /// </remarks>
     private static readonly ConcurrentDictionary<Type, MethodInfo> s_handleAsyncMethodCache = new();
+
+    /// <summary>
+    /// Thread-safe cache indicating whether any command exception handlers are registered for a given command type.
+    /// When false, the dispatcher can skip exception handler invocation entirely (zero-alloc path).
+    /// DI container is immutable after build — this cache is valid for the application lifetime.
+    /// </summary>
+    private static readonly ConcurrentDictionary<Type, bool> s_hasCommandExceptionHandlersCache = new();
+
+    /// <summary>
+    /// Thread-safe cache indicating whether any query exception handlers are registered for a given query type.
+    /// When false, the dispatcher can skip exception handler invocation entirely (zero-alloc path).
+    /// DI container is immutable after build — this cache is valid for the application lifetime.
+    /// </summary>
+    private static readonly ConcurrentDictionary<Type, bool> s_hasQueryExceptionHandlersCache = new();
+
+    /// <summary>
+    /// Returns true if any command exception handlers are registered for the given command type.
+    /// Uses a cached result per command type — safe for the application lifetime (DI is immutable after build).
+    /// </summary>
+    /// <param name="commandType">The concrete command type to check.</param>
+    /// <returns>True if at least one command exception handler is registered; false otherwise.</returns>
+    /// <remarks>
+    /// Checks the type hierarchy against <see cref="Exception"/> (broadest handler base).
+    /// If even one handler exists for any level, returns true.
+    /// Used by <see cref="CommandDispatcher"/> to skip try/catch wrapping on the zero-alloc path.
+    /// </remarks>
+    [UnconditionalSuppressMessage("Trimming", "IL2055",
+        Justification = "commandType comes from runtime DI resolution; handler types are preserved by DI registrations.")]
+    public bool HasCommandExceptionHandlers(Type commandType)
+    {
+        return s_hasCommandExceptionHandlersCache.GetOrAdd(commandType, static (cmdType, svc) =>
+        {
+            var hierarchy = GetTypeHierarchy(cmdType, typeof(ICommand));
+            foreach (var messageType in hierarchy)
+            {
+                try
+                {
+                    Type handlerType = typeof(ICommandExceptionHandler<,>).MakeGenericType(messageType, typeof(Exception));
+                    Type enumerableType = typeof(IEnumerable<>).MakeGenericType(handlerType);
+                    var handlersObj = svc.GetService(enumerableType);
+                    if (handlersObj is System.Collections.IEnumerable handlers)
+                    {
+                        foreach (var _ in handlers)
+                        {
+                            return true; // At least one handler found
+                        }
+                    }
+                }
+                catch (NotSupportedException)
+                {
+                    // NativeAOT: dynamically-constructed generic type has no metadata — skip
+                }
+            }
+
+            return false;
+        }, _serviceProvider);
+    }
+
+    /// <summary>
+    /// Returns true if any query exception handlers are registered for the given query type.
+    /// Uses a cached result per query type — safe for the application lifetime (DI is immutable after build).
+    /// </summary>
+    /// <param name="queryType">The concrete query type to check.</param>
+    /// <returns>True if at least one query exception handler is registered; false otherwise.</returns>
+    /// <remarks>
+    /// Checks the type hierarchy against <see cref="Exception"/> (broadest handler base).
+    /// If even one handler exists for any level, returns true.
+    /// Used by <see cref="QueryDispatcher"/> to skip try/catch wrapping on the zero-alloc path.
+    /// </remarks>
+    [UnconditionalSuppressMessage("Trimming", "IL2055",
+        Justification = "queryType comes from runtime DI resolution; handler types are preserved by DI registrations.")]
+    public bool HasQueryExceptionHandlers(Type queryType)
+    {
+        return s_hasQueryExceptionHandlersCache.GetOrAdd(queryType, static (qType, svc) =>
+        {
+            var hierarchy = GetTypeHierarchy(qType, typeof(IQuery));
+            foreach (var messageType in hierarchy)
+            {
+                try
+                {
+                    Type handlerType = typeof(IQueryExceptionHandler<,>).MakeGenericType(messageType, typeof(Exception));
+                    Type enumerableType = typeof(IEnumerable<>).MakeGenericType(handlerType);
+                    var handlersObj = svc.GetService(enumerableType);
+                    if (handlersObj is System.Collections.IEnumerable handlers)
+                    {
+                        foreach (var _ in handlers)
+                        {
+                            return true; // At least one handler found
+                        }
+                    }
+                }
+                catch (NotSupportedException)
+                {
+                    // NativeAOT: dynamically-constructed generic type has no metadata — skip
+                }
+            }
+
+            return false;
+        }, _serviceProvider);
+    }
+
+    /// <summary>
+    /// Clears all caches. For testing purposes only.
+    /// </summary>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    internal static void ResetForTesting()
+    {
+        s_handleAsyncMethodCache.Clear();
+        s_hasCommandExceptionHandlersCache.Clear();
+        s_hasQueryExceptionHandlersCache.Clear();
+    }
 
     /// <summary>
     /// Invokes all registered command exception handlers for the specified command and exception.
@@ -200,8 +312,14 @@ internal sealed class ExceptionHandlerResolver(
     /// <param name="exception">The exception instance.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2055",
+        Justification = "Two-axis exception handler resolution: messageType and exceptionType come from type hierarchy walks. Handler types are registered explicitly in DI — trimmer cannot verify list elements statically.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2062",
+        Justification = "messageTypeHierarchy and exceptionTypeHierarchy contain runtime-discovered types. DI registrations ensure required members are preserved.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2067",
+        Justification = "handlerType is constructed via MakeGenericType from handlerOpenGeneric (a closed ICommandExceptionHandler<,>/IQueryExceptionHandler<,>/INotificationExceptionHandler<,>) — PublicMethods are preserved by DI registrations.")]
     private async ValueTask InvokeHandlersAsync(
-        Type handlerOpenGeneric,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type handlerOpenGeneric,
         List<Type> messageTypeHierarchy,
         List<Type> exceptionTypeHierarchy,
         object message,
@@ -264,7 +382,7 @@ internal sealed class ExceptionHandlerResolver(
     /// </remarks>
     private async ValueTask InvokeHandleAsyncAsync(
         object handler,
-        Type handlerType,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)] Type handlerType,
         object message,
         Exception exception,
         CancellationToken ct)
@@ -329,7 +447,9 @@ internal sealed class ExceptionHandlerResolver(
     /// </code>
     /// This enables fallback resolution from specific to general exception handlers.
     /// </remarks>
-    private static List<Type> GetTypeHierarchy(Type messageType, Type markerInterface)
+    private static List<Type> GetTypeHierarchy(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type messageType,
+        Type markerInterface)
     {
         var hierarchy = new List<Type>();
         var currentType = messageType;
@@ -362,7 +482,8 @@ internal sealed class ExceptionHandlerResolver(
     /// </code>
     /// This enables fallback resolution from specific to general exception handlers.
     /// </remarks>
-    private static List<Type> GetExceptionTypeHierarchy(Type exceptionType)
+    private static List<Type> GetExceptionTypeHierarchy(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type exceptionType)
     {
         var hierarchy = new List<Type>();
         var currentType = exceptionType;

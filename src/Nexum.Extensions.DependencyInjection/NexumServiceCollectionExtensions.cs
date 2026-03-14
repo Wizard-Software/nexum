@@ -383,7 +383,9 @@ public static class NexumServiceCollectionExtensions
         }
     }
 
-    private static void RegisterHandlerInterfaces(IServiceCollection services, Type implementationType)
+    private static void RegisterHandlerInterfaces(
+        IServiceCollection services,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces | DynamicallyAccessedMemberTypes.PublicConstructors)] Type implementationType)
     {
         HandlerLifetimeAttribute? lifetimeAttr = implementationType.GetCustomAttribute<HandlerLifetimeAttribute>();
         ServiceLifetime serviceLifetime = lifetimeAttr is not null

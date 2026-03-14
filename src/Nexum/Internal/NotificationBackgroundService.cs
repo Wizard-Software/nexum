@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Threading.Channels;
 using Nexum.Abstractions;
@@ -170,6 +171,8 @@ internal sealed class NotificationBackgroundService(
     /// <param name="envelope">The notification envelope to process.</param>
     /// <param name="ct">Cancellation token (linked with timeout).</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2055",
+        Justification = "NotificationType is always a concrete INotification implementation registered in DI — handler types are preserved by DI registrations at startup.")]
     private async Task InvokeHandlersInScopeAsync(NotificationEnvelope envelope, CancellationToken ct)
     {
         using IServiceScope scope = _scopeFactory.CreateScope();
@@ -230,7 +233,7 @@ internal sealed class NotificationBackgroundService(
     /// </remarks>
     private static async Task InvokeHandleAsyncAsync(
         object handler,
-        Type closedHandlerType,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)] Type closedHandlerType,
         INotification notification,
         CancellationToken ct)
     {
