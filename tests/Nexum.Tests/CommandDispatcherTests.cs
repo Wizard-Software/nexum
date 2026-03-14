@@ -172,6 +172,93 @@ public sealed class CommandDispatcherTests : IDisposable
         await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
+    /// <summary>
+    /// R7.3: Zero-alloc path — no behaviors, no exception handlers.
+    /// Handler is invoked directly without any pipeline wrapping.
+    /// </summary>
+    [Fact]
+    public async Task DispatchAsync_NoBehaviorsNoExceptionHandlers_InvokesHandlerDirectlyAsync()
+    {
+        // Arrange — no behaviors, no exception handlers registered
+        var handlerInvoked = false;
+
+        using var sp = CreateServiceProvider(services =>
+        {
+            services.AddScoped<ICommandHandler<TestCommand, string>>(
+                _ => new TrackingInvocationHandler(() => handlerInvoked = true));
+        });
+
+        var dispatcher = sp.GetRequiredService<ICommandDispatcher>();
+        var command = new TestCommand("test");
+
+        // Act — first dispatch: cold path (populates behavior and exception handler caches)
+        var result1 = await dispatcher.DispatchAsync(command, TestContext.Current.CancellationToken);
+
+        // Act — second dispatch: hot path (uses zero-alloc direct path)
+        handlerInvoked = false;
+        var result2 = await dispatcher.DispatchAsync(command, TestContext.Current.CancellationToken);
+
+        // Assert
+        result1.Should().Be("test");
+        result2.Should().Be("test");
+        handlerInvoked.Should().BeTrue("handler must be invoked on zero-alloc hot path");
+    }
+
+    /// <summary>
+    /// R7.3: Path with no behaviors but exception handler registered.
+    /// Exception handler must be invoked when handler throws.
+    /// </summary>
+    [Fact]
+    public async Task DispatchAsync_NoBehaviorsWithExceptionHandlers_InvokesExceptionHandlerAsync()
+    {
+        // Arrange — no behaviors, but an exception handler registered
+        var exceptionHandlerInvoked = false;
+
+        using var sp = CreateServiceProvider(services =>
+        {
+            services.AddScoped<ICommandHandler<TestCommand, string>, ThrowingCommandHandler>();
+            services.AddScoped<ICommandExceptionHandler<TestCommand, InvalidOperationException>>(_ =>
+                new TestCommandExceptionHandler(() => exceptionHandlerInvoked = true));
+        });
+
+        var dispatcher = sp.GetRequiredService<ICommandDispatcher>();
+        var command = new TestCommand("test");
+
+        // Act
+        var act = async () => await dispatcher.DispatchAsync(command, TestContext.Current.CancellationToken);
+        await act.Should().ThrowAsync<InvalidOperationException>();
+
+        // Assert — exception handler invoked even on the no-behaviors path
+        exceptionHandlerInvoked.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// R7.3: Full pipeline path — behaviors present, uses existing pipeline.
+    /// </summary>
+    [Fact]
+    public async Task DispatchAsync_WithBehaviors_UsesFullPipelineAsync()
+    {
+        // Arrange — behavior registered
+        var behaviorInvoked = false;
+
+        using var sp = CreateServiceProvider(services =>
+        {
+            services.AddScoped<ICommandHandler<TestCommand, string>, TestCommandHandler>();
+            services.AddScoped<ICommandBehavior<TestCommand, string>>(
+                _ => new TrackingBehavior(() => behaviorInvoked = true));
+        });
+
+        var dispatcher = sp.GetRequiredService<ICommandDispatcher>();
+        var command = new TestCommand("test");
+
+        // Act
+        var result = await dispatcher.DispatchAsync(command, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Should().Be("test");
+        behaviorInvoked.Should().BeTrue("full pipeline must go through the behavior");
+    }
+
     #region Helper Methods
 
     private static ServiceProvider CreateServiceProvider(Action<IServiceCollection>? configure = null)
@@ -289,6 +376,27 @@ public sealed class CommandDispatcherTests : IDisposable
         {
             onInvoked();
             return ValueTask.CompletedTask;
+        }
+    }
+
+    internal sealed class TrackingInvocationHandler(Action onInvoke) : ICommandHandler<TestCommand, string>
+    {
+        public ValueTask<string> HandleAsync(TestCommand command, CancellationToken ct = default)
+        {
+            onInvoke();
+            return ValueTask.FromResult(command.Value);
+        }
+    }
+
+    internal sealed class TrackingBehavior(Action onInvoke) : ICommandBehavior<TestCommand, string>
+    {
+        public async ValueTask<string> HandleAsync(
+            TestCommand command,
+            CommandHandlerDelegate<string> next,
+            CancellationToken ct = default)
+        {
+            onInvoke();
+            return await next(ct).ConfigureAwait(false);
         }
     }
 
