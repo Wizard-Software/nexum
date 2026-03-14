@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1773518166587,
+  "lastUpdate": 1773521414488,
   "repoUrl": "https://github.com/asawicki/nexum",
   "entries": {
     "Benchmark": [
@@ -336,6 +336,48 @@ window.BENCHMARK_DATA = {
             "value": 174.43966684891626,
             "unit": "ns",
             "range": "± 2.7329046842989477"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "artur.sawicki@gmail.com",
+            "name": "asawicki",
+            "username": "asawicki"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "952eb47dae1bc949ec36d1f1a9462d48d8dee3c5",
+          "message": "Merge pull request #7 from asawicki/feature/nexum-testing\n\nFeature/nexum testing",
+          "timestamp": "2026-03-14T21:47:07+01:00",
+          "tree_id": "e2f1624063aa304e1bdb68fdfb01bee2e9baa00b",
+          "url": "https://github.com/asawicki/nexum/commit/952eb47dae1bc949ec36d1f1a9462d48d8dee3c5"
+        },
+        "date": 1773521414179,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleCommand",
+            "value": 70.54195861980833,
+            "unit": "ns",
+            "range": "± 1.6988059900820758"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3Behaviors",
+            "value": 185.79620436032613,
+            "unit": "ns",
+            "range": "± 3.3606976967349182"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_5NotificationHandlers",
+            "value": 167.0768824974696,
+            "unit": "ns",
+            "range": "± 20.792159704852935"
           }
         ]
       }
