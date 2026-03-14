@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Nexum.Abstractions\Nexum.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Nexum.Migration.MediatR\Nexum.Migration.MediatR.csproj" />
+    <ProjectReference Include="..\..\src\Nexum.Migration.MediatR.Analyzers\Nexum.Migration.MediatR.Analyzers.csproj" OutputItemType="" ReferenceOutputAssembly="true" />
+    <ProjectReference Include="..\..\src\Nexum\Nexum.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -10,12 +10,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MediatR" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Nexum.Abstractions\Nexum.Abstractions.csproj" />
     <ProjectReference Include="..\..\src\Nexum\Nexum.csproj" />
     <ProjectReference Include="..\..\src\Nexum.Results\Nexum.Results.csproj" />
     <ProjectReference Include="..\..\src\Nexum.OpenTelemetry\Nexum.OpenTelemetry.csproj" />
     <ProjectReference Include="..\..\src\Nexum.Extensions.DependencyInjection\Nexum.Extensions.DependencyInjection.csproj" />
     <ProjectReference Include="..\..\src\Nexum.Extensions.AspNetCore\Nexum.Extensions.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\Nexum.Migration.MediatR\Nexum.Migration.MediatR.csproj" />
   </ItemGroup>
 
 </Project>

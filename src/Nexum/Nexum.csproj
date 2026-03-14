@@ -19,6 +19,8 @@
     <InternalsVisibleTo Include="Nexum.Tests" />
     <InternalsVisibleTo Include="Nexum.Benchmarks" />
     <InternalsVisibleTo Include="Nexum.Extensions.DependencyInjection" />
+    <InternalsVisibleTo Include="Nexum.Migration.MediatR" />
+    <InternalsVisibleTo Include="Nexum.Migration.MediatR.Tests" />
     <InternalsVisibleTo Include="Nexum.NativeAot.SmokeTest" />
   </ItemGroup>
 

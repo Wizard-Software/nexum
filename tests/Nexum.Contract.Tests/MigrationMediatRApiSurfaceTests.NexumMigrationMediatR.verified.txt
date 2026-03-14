@@ -1,0 +1,39 @@
+﻿namespace Nexum.Migration.MediatR
+{
+    public sealed class MediatRCommandAdapter<TRequest, TResult> : Nexum.Abstractions.ICommandHandler<TRequest, TResult>
+        where TRequest : Nexum.Abstractions.ICommand<TResult>, MediatR.IRequest<TResult>
+    {
+        public MediatRCommandAdapter(MediatR.IRequestHandler<TRequest, TResult> mediatRHandler) { }
+        public System.Threading.Tasks.ValueTask<TResult> HandleAsync(TRequest command, System.Threading.CancellationToken ct = default) { }
+    }
+    public sealed class MediatRCommandBehaviorAdapter<TCommand, TResult> : Nexum.Abstractions.ICommandBehavior<TCommand, TResult>
+        where TCommand : Nexum.Abstractions.ICommand<TResult>, MediatR.IRequest<TResult>
+    {
+        public MediatRCommandBehaviorAdapter(MediatR.IPipelineBehavior<TCommand, TResult> mediatRBehavior) { }
+        public System.Threading.Tasks.ValueTask<TResult> HandleAsync(TCommand command, Nexum.Abstractions.CommandHandlerDelegate<TResult> next, System.Threading.CancellationToken ct = default) { }
+    }
+    public static class MediatRCompatServiceCollectionExtensions
+    {
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("Assembly scanning uses MakeGenericType for handler interface matching.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Assembly scanning uses reflection to discover handler and adapter types.")]
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddNexumWithMediatRCompat(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<Nexum.NexumOptions>? configureNexum = null, System.Action<Microsoft.Extensions.DependencyInjection.MediatRServiceConfiguration>? configureMediatR = null, params System.Reflection.Assembly[] assemblies) { }
+    }
+    public sealed class MediatRNotificationAdapter<TNotification> : Nexum.Abstractions.INotificationHandler<TNotification>
+        where TNotification : Nexum.Abstractions.INotification, MediatR.INotification
+    {
+        public MediatRNotificationAdapter(MediatR.INotificationHandler<TNotification> mediatRHandler) { }
+        public System.Threading.Tasks.ValueTask HandleAsync(TNotification notification, System.Threading.CancellationToken ct = default) { }
+    }
+    public sealed class MediatRQueryAdapter<TRequest, TResult> : Nexum.Abstractions.IQueryHandler<TRequest, TResult>
+        where TRequest : Nexum.Abstractions.IQuery<TResult>, MediatR.IRequest<TResult>
+    {
+        public MediatRQueryAdapter(MediatR.IRequestHandler<TRequest, TResult> mediatRHandler) { }
+        public System.Threading.Tasks.ValueTask<TResult> HandleAsync(TRequest query, System.Threading.CancellationToken ct = default) { }
+    }
+    public sealed class MediatRQueryBehaviorAdapter<TQuery, TResult> : Nexum.Abstractions.IQueryBehavior<TQuery, TResult>
+        where TQuery : Nexum.Abstractions.IQuery<TResult>, MediatR.IRequest<TResult>
+    {
+        public MediatRQueryBehaviorAdapter(MediatR.IPipelineBehavior<TQuery, TResult> mediatRBehavior) { }
+        public System.Threading.Tasks.ValueTask<TResult> HandleAsync(TQuery query, Nexum.Abstractions.QueryHandlerDelegate<TResult> next, System.Threading.CancellationToken ct = default) { }
+    }
+}
