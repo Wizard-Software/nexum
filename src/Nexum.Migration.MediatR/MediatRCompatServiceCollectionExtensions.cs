@@ -96,7 +96,10 @@ public static class MediatRCompatServiceCollectionExtensions
                 sp.GetRequiredService<NexumOptions>(),
                 sp.GetRequiredService<ChannelWriter<NotificationEnvelope>>()));
 
-        services.AddSingleton<IHostedService, NotificationBackgroundService>();
+        if (!IsHostedServiceRegistered<NotificationBackgroundService>(services))
+        {
+            services.AddSingleton<IHostedService, NotificationBackgroundService>();
+        }
 
         if (assemblies.Length > 0)
         {
@@ -118,6 +121,24 @@ public static class MediatRCompatServiceCollectionExtensions
         foreach (ServiceDescriptor descriptor in services)
         {
             if (descriptor.ServiceType == typeof(TService))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Checks whether an <see cref="IHostedService"/> with the specified implementation type
+    /// is already registered in the collection. Prevents duplicate background service registrations
+    /// when both <c>AddNexum()</c> and <c>AddNexumWithMediatRCompat()</c> are called.
+    /// </summary>
+    private static bool IsHostedServiceRegistered<TImplementation>(IServiceCollection services)
+    {
+        foreach (ServiceDescriptor descriptor in services)
+        {
+            if (descriptor.ServiceType == typeof(IHostedService)
+                && descriptor.ImplementationType == typeof(TImplementation))
             {
                 return true;
             }
