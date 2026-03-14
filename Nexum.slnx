@@ -11,6 +11,7 @@
     <Project Path="src/Nexum.Batching/Nexum.Batching.csproj" />
     <Project Path="src/Nexum.Migration.MediatR/Nexum.Migration.MediatR.csproj" />
     <Project Path="src/Nexum.Migration.MediatR.Analyzers/Nexum.Migration.MediatR.Analyzers.csproj" />
+    <Project Path="src/Nexum.Testing/Nexum.Testing.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Nexum.Abstractions.Tests/Nexum.Abstractions.Tests.csproj" />
@@ -26,6 +27,7 @@
     <Project Path="tests/Nexum.Results.FluentValidation.Tests/Nexum.Results.FluentValidation.Tests.csproj" />
     <Project Path="tests/Nexum.Batching.Tests/Nexum.Batching.Tests.csproj" />
     <Project Path="tests/Nexum.Migration.MediatR.Tests/Nexum.Migration.MediatR.Tests.csproj" />
+    <Project Path="tests/Nexum.Testing.Tests/Nexum.Testing.Tests.csproj" />
   </Folder>
   <Folder Name="/benchmarks/">
     <Project Path="benchmarks/Nexum.Benchmarks/Nexum.Benchmarks.csproj" />
