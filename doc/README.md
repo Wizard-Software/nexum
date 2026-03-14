@@ -18,6 +18,7 @@ Modern CQRS library for .NET 10 -- compile-time safe, zero-reflection, observabl
 | [Batching](batching.md) | Automatic query batching and deduplication |
 | [Source Generators](source-generators.md) | Tiered compile-time acceleration |
 | [API Reference](api-reference.md) | Complete public API surface |
+| [Migrating from MediatR](migration-from-mediatr.md) | Step-by-step migration guide from MediatR to Nexum |
 
 ## Package Overview
 
@@ -31,6 +32,7 @@ Nexum.Results                       Result<T, TError>, NexumError, IResultAdapte
 Nexum.Results.FluentValidation      FluentValidation integration for Result pattern
 Nexum.Extensions.AspNetCore         Middleware, endpoint routing, Problem Details
 Nexum.Batching                      Automatic query batching with configurable windows
+Nexum.Migration.MediatR              Gradual migration from MediatR (adapters + analyzers)
 ```
 
 ### Dependency Graph
@@ -42,6 +44,7 @@ Nexum.Abstractions (zero dependencies)
 │   ├── Nexum.Extensions.DependencyInjection --> Nexum + SourceGenerators (optional)
 │   └── Nexum.Extensions.AspNetCore --> Nexum
 ├── Nexum.Batching --> Abstractions + MSDI.Abstractions + Logging.Abstractions
+├── Nexum.Migration.MediatR --> Abstractions + MediatR + Nexum (migration adapters, temporary)
 ├── Nexum.Results --> Abstractions
 │   └── Nexum.Results.FluentValidation --> Results + FluentValidation + MSDI.Abstractions
 └── Nexum.SourceGenerators (compile-only analyzer, OPTIONAL accelerator)

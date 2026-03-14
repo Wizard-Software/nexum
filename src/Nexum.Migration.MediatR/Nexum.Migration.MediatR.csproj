@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>MediatR migration adapters for Nexum. Enables gradual handler-by-handler migration.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nexum.Abstractions\Nexum.Abstractions.csproj" />
+    <ProjectReference Include="..\Nexum\Nexum.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+  </ItemGroup>
+
+  <!-- Bundle migration analyzer -->
+  <ItemGroup>
+    <ProjectReference Include="..\Nexum.Migration.MediatR.Analyzers\Nexum.Migration.MediatR.Analyzers.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../Nexum.Migration.MediatR.Analyzers/bin/$(Configuration)/netstandard2.0/Nexum.Migration.MediatR.Analyzers.dll"
+          Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+
+</Project>

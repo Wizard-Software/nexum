@@ -476,7 +476,7 @@ public sealed class QueryDispatcher : IQueryDispatcher, IInterceptableDispatcher
             .InvokeQueryExceptionHandlersAsync(query, ex, ct)
             .ConfigureAwait(false);
         ExceptionDispatchInfo.Throw(ex); // Preserves original stack trace
-        return default!; // Unreachable — ExceptionDispatchInfo.Throw always throws
+        return default; // Unreachable — ExceptionDispatchInfo.Throw always throws
     }
 
     /// <summary>
@@ -779,7 +779,7 @@ public sealed class QueryDispatcher : IQueryDispatcher, IInterceptableDispatcher
             .InvokeQueryExceptionHandlersAsync(query, ex, ct)
             .ConfigureAwait(false);
         ExceptionDispatchInfo.Throw(ex);
-        return default!; // Unreachable
+        return default; // Unreachable
     }
 
     /// <inheritdoc />
