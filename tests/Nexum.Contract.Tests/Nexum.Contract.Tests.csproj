@@ -21,6 +21,7 @@
     <ProjectReference Include="..\..\src\Nexum.Extensions.DependencyInjection\Nexum.Extensions.DependencyInjection.csproj" />
     <ProjectReference Include="..\..\src\Nexum.Extensions.AspNetCore\Nexum.Extensions.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Nexum.Migration.MediatR\Nexum.Migration.MediatR.csproj" />
+    <ProjectReference Include="..\..\src\Nexum.Streaming\Nexum.Streaming.csproj" />
   </ItemGroup>
 
 </Project>

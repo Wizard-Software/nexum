@@ -16,6 +16,7 @@ Modern CQRS library for .NET 10 -- compile-time safe, zero-reflection, observabl
 | [Result Pattern](results.md) | Explicit error handling with `Result<T>` |
 | [ASP.NET Core Integration](aspnetcore.md) | Middleware, endpoint mapping, and Problem Details |
 | [Batching](batching.md) | Automatic query batching and deduplication |
+| [Streaming](streaming.md) | Streaming notifications, SignalR integration, and SSE endpoints |
 | [Source Generators](source-generators.md) | Tiered compile-time acceleration |
 | [API Reference](api-reference.md) | Complete public API surface |
 | [Migrating from MediatR](migration-from-mediatr.md) | Step-by-step migration guide from MediatR to Nexum |
@@ -32,6 +33,7 @@ Nexum.Results                       Result<T, TError>, NexumError, IResultAdapte
 Nexum.Results.FluentValidation      FluentValidation integration for Result pattern
 Nexum.Extensions.AspNetCore         Middleware, endpoint routing, Problem Details
 Nexum.Batching                      Automatic query batching with configurable windows
+Nexum.Streaming                     Streaming notifications, SignalR hubs, and SSE endpoints
 Nexum.Migration.MediatR              Gradual migration from MediatR (adapters + analyzers)
 ```
 
@@ -44,6 +46,7 @@ Nexum.Abstractions (zero dependencies)
 │   ├── Nexum.Extensions.DependencyInjection --> Nexum + SourceGenerators (optional)
 │   └── Nexum.Extensions.AspNetCore --> Nexum
 ├── Nexum.Batching --> Abstractions + MSDI.Abstractions + Logging.Abstractions
+├── Nexum.Streaming --> Abstractions + AspNetCore.SignalR + AspNetCore.Http
 ├── Nexum.Migration.MediatR --> Abstractions + MediatR + Nexum (migration adapters, temporary)
 ├── Nexum.Results --> Abstractions
 │   └── Nexum.Results.FluentValidation --> Results + FluentValidation + MSDI.Abstractions
