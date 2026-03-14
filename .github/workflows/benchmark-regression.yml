@@ -57,9 +57,9 @@ jobs:
           tool: 'benchmarkdotnet'
           output-file-path: BenchmarkDotNet.Artifacts/results/Nexum.Benchmarks.NexumRegressionBenchmarks-report-full-compressed.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          # 15% threshold: informational on PRs (fail-on-alert=false).
+          # 30% threshold: informational on PRs (fail-on-alert=false).
           # Shared CI runners have ±10-20% variance — blocking PRs on noise is counterproductive.
-          alert-threshold: '115%'
+          alert-threshold: '130%'
           fail-on-alert: false
           comment-on-alert: true
           # PRs do not push results to gh-pages — only main merges update the baseline.

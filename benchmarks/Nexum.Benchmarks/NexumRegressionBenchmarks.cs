@@ -12,15 +12,15 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Nexum.Benchmarks;
 
-// Threshold rationale (testing-spec §9.4): 15% alert threshold accounts for ±10-20%
-// CPU variance on shared CI runners. PR jobs are comment-only (fail-on-alert=false).
-// Main branch jobs enforce the threshold (fail-on-alert=true).
+// Threshold rationale (testing-spec §9.4): 30% alert threshold accounts for ±10-20%
+// CPU variance on shared CI runners. Both PR and main jobs are comment-only
+// (fail-on-alert=false) to avoid false-positive build failures.
 [MemoryDiagnoser]
 [MarkdownExporter]
 [JsonExporterAttribute.Full]
 [JsonExporterAttribute.Brief]
 [JsonExporterAttribute.FullCompressed]
-[SimpleJob(RuntimeMoniker.Net10_0, warmupCount: 3, iterationCount: 5)]
+[SimpleJob(RuntimeMoniker.Net10_0, warmupCount: 5, iterationCount: 15)]
 public class NexumRegressionBenchmarks
 {
     private ICommandDispatcher _nexumDispatcher = null!;
