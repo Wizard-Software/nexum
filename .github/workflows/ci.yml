@@ -150,6 +150,15 @@ jobs:
           output-file-path: BenchmarkDotNet.Artifacts/results/Nexum.Benchmarks.NexumRegressionBenchmarks-report-full-compressed.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
-          alert-threshold: '130%'
-          fail-on-alert: false
+          # 15% threshold (testing-spec §9.4): accounts for ±10-20% CI runner variance.
+          # On main: enforce — a 15%+ regression that survives PR review is a real regression.
+          alert-threshold: '115%'
+          fail-on-alert: true
           comment-on-alert: true
+
+      - name: Upload benchmark artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: benchmark-results
+          path: BenchmarkDotNet.Artifacts/

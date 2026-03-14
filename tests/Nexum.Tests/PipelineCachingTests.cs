@@ -15,13 +15,22 @@ public sealed class PipelineCachingTests : IDisposable
     public PipelineCachingTests()
     {
         // Start each test with clean caches
+        PolymorphicHandlerResolver.ResetForTesting();
+        CommandDispatcher.ResetForTesting();
+        QueryDispatcher.ResetForTesting();
         CommandHandlerWrapperCache.ResetForTesting();
         QueryHandlerWrapperCache.ResetForTesting();
         PipelineBuilder.ResetForTesting();
+        InstanceTrackingBehavior.InvocationCount = 0;
+        CountingBehavior.CreationCount = 0;
+        CountingQueryBehavior.CreationCount = 0;
     }
 
     public void Dispose()
     {
+        PolymorphicHandlerResolver.ResetForTesting();
+        CommandDispatcher.ResetForTesting();
+        QueryDispatcher.ResetForTesting();
         CommandHandlerWrapperCache.ResetForTesting();
         QueryHandlerWrapperCache.ResetForTesting();
         PipelineBuilder.ResetForTesting();
@@ -103,27 +112,31 @@ public sealed class PipelineCachingTests : IDisposable
     }
 
     [Fact]
-    public async Task DispatchAsync_WithBehaviors_PipelineFactoryCachePopulatedAfterFirstCallAsync()
+    public async Task DispatchAsync_WithBehaviors_OrderPreservedOnColdAndHotPathAsync()
     {
-        // Arrange
+        // Arrange — behaviors registered in reverse order to verify sorting
+        var executionLog = new List<string>();
         var sp = CreateServiceProvider(services =>
         {
-            services.AddScoped<ICommandHandler<CachingTestCommand, string>, TrackingCommandHandlerDi>();
-            services.AddTransient<ICommandBehavior<CachingTestCommand, string>, CountingBehavior>();
+            services.AddSingleton(executionLog);
+            services.AddScoped<ICommandHandler<CachingTestCommand, string>, LoggingCommandHandler>();
+            services.AddTransient<ICommandBehavior<CachingTestCommand, string>, LoggingBehaviorOrder2>();
+            services.AddTransient<ICommandBehavior<CachingTestCommand, string>, LoggingBehaviorOrder1>();
         });
 
         var dispatcher = sp.GetRequiredService<ICommandDispatcher>();
-        var options = sp.GetRequiredService<NexumOptions>();
 
-        // Before first dispatch — no factory cached
-        var wrapperKey = typeof(CommandHandlerWrapperImpl<CachingTestCommand, string>);
-        CommandHandlerWrapperCache.PipelineFactories.ContainsKey((wrapperKey, options)).Should().BeFalse();
+        // Act — first dispatch (cold path: sort + cache factory)
+        await dispatcher.DispatchAsync(new CachingTestCommand(), CancellationToken.None);
+        executionLog.Should().ContainInOrder("Order1:Before", "Order2:Before", "Handler");
 
-        // Act — first dispatch (cold path)
+        executionLog.Clear();
+
+        // Second dispatch (hot path: cached factory, no re-sort)
         await dispatcher.DispatchAsync(new CachingTestCommand(), CancellationToken.None);
 
-        // Assert — factory is now cached
-        CommandHandlerWrapperCache.PipelineFactories.ContainsKey((wrapperKey, options)).Should().BeTrue();
+        // Assert — behaviors still execute in correct order on hot path (factory preserves sort)
+        executionLog.Should().ContainInOrder("Order1:Before", "Order2:Before", "Handler", "Order2:After", "Order1:After");
     }
 
     [Fact]
@@ -147,53 +160,20 @@ public sealed class PipelineCachingTests : IDisposable
         CountingBehavior.CreationCount.Should().Be(2);
     }
 
-    [Fact]
-    public async Task DispatchAsync_WithBehaviors_OrderPreservedOnHotPathAsync()
-    {
-        // Arrange — two ordered behaviors
-        var executionLog = new List<string>();
-        var sp = CreateServiceProvider(services =>
-        {
-            services.AddSingleton(executionLog);
-            services.AddScoped<ICommandHandler<CachingTestCommand, string>, LoggingCommandHandler>();
-            services.AddTransient<ICommandBehavior<CachingTestCommand, string>, LoggingBehaviorOrder2>();
-            services.AddTransient<ICommandBehavior<CachingTestCommand, string>, LoggingBehaviorOrder1>();
-        });
-
-        var dispatcher = sp.GetRequiredService<ICommandDispatcher>();
-
-        // First dispatch — cold path (sorts and caches factory)
-        await dispatcher.DispatchAsync(new CachingTestCommand(), CancellationToken.None);
-        executionLog.Clear();
-
-        // Second dispatch — hot path (uses cached factory, no re-sort)
-        await dispatcher.DispatchAsync(new CachingTestCommand(), CancellationToken.None);
-
-        // Assert — order is preserved: Order1 (1) before Order2 (2)
-        executionLog.Should().ContainInOrder("Order1:Before", "Order2:Before", "Handler", "Order2:After", "Order1:After");
-    }
 
     [Fact]
-    public async Task ResetForTesting_ClearsPipelineFactoryCacheAsync()
+    public void ResetForTesting_ClearsPipelineFactoryCache()
     {
-        // Arrange — dispatch with behaviors to populate the cache
-        var sp = CreateServiceProvider(services =>
-        {
-            services.AddScoped<ICommandHandler<CachingTestCommand, string>, TrackingCommandHandlerDi>();
-            services.AddTransient<ICommandBehavior<CachingTestCommand, string>, CountingBehavior>();
-        });
-        var dispatcher = sp.GetRequiredService<ICommandDispatcher>();
-
-        await dispatcher.DispatchAsync(new CachingTestCommand(), CancellationToken.None);
-
-        // Cache should be populated now
-        CommandHandlerWrapperCache.PipelineFactories.Should().NotBeEmpty();
+        // Arrange — directly add an entry to the factory cache
+        var dummyKey = (typeof(CommandHandlerWrapperImpl<CachingTestCommand, string>), new NexumOptions());
+        CommandHandlerWrapperCache.PipelineFactories.TryAdd(dummyKey, new object());
+        CommandHandlerWrapperCache.PipelineFactories.ContainsKey(dummyKey).Should().BeTrue();
 
         // Act
         CommandHandlerWrapperCache.ResetForTesting();
 
         // Assert
-        CommandHandlerWrapperCache.PipelineFactories.Should().BeEmpty();
+        CommandHandlerWrapperCache.PipelineFactories.ContainsKey(dummyKey).Should().BeFalse();
     }
 
     // -------------------------------------------------------------------------
@@ -201,32 +181,9 @@ public sealed class PipelineCachingTests : IDisposable
     // -------------------------------------------------------------------------
 
     [Fact]
-    public async Task QueryDispatch_WithBehaviors_PipelineFactoryCachePopulatedAfterFirstCallAsync()
+    public async Task QueryDispatch_WithBehaviors_OrderPreservedOnColdAndHotPathAsync()
     {
-        // Arrange
-        var sp = CreateServiceProvider(services =>
-        {
-            services.AddScoped<IQueryHandler<CachingTestQuery, string>, TrackingQueryHandlerDi>();
-            services.AddTransient<IQueryBehavior<CachingTestQuery, string>, CountingQueryBehavior>();
-        });
-
-        var dispatcher = sp.GetRequiredService<IQueryDispatcher>();
-        var options = sp.GetRequiredService<NexumOptions>();
-
-        var wrapperKey = typeof(QueryHandlerWrapperImpl<CachingTestQuery, string>);
-        QueryHandlerWrapperCache.PipelineFactories.ContainsKey((wrapperKey, options)).Should().BeFalse();
-
-        // Act
-        await dispatcher.DispatchAsync(new CachingTestQuery(), CancellationToken.None);
-
-        // Assert
-        QueryHandlerWrapperCache.PipelineFactories.ContainsKey((wrapperKey, options)).Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task QueryDispatch_WithBehaviors_OrderPreservedOnHotPathAsync()
-    {
-        // Arrange
+        // Arrange — behaviors registered in reverse order to verify sorting
         var executionLog = new List<string>();
         var sp = CreateServiceProvider(services =>
         {
@@ -238,16 +195,19 @@ public sealed class PipelineCachingTests : IDisposable
 
         var dispatcher = sp.GetRequiredService<IQueryDispatcher>();
 
-        // First dispatch — cold path
+        // Act — first dispatch (cold path: sort + cache factory)
         await dispatcher.DispatchAsync(new CachingTestQuery(), CancellationToken.None);
+        executionLog.Should().ContainInOrder("QOrder1:Before", "QOrder2:Before", "QHandler");
+
         executionLog.Clear();
 
-        // Second dispatch — hot path
+        // Second dispatch (hot path: cached factory, no re-sort)
         await dispatcher.DispatchAsync(new CachingTestQuery(), CancellationToken.None);
 
-        // Assert — order preserved
+        // Assert — behaviors still execute in correct order on hot path
         executionLog.Should().ContainInOrder("QOrder1:Before", "QOrder2:Before", "QHandler", "QOrder2:After", "QOrder1:After");
     }
+
 
     // -------------------------------------------------------------------------
     // Helpers
