@@ -22,6 +22,7 @@
     <InternalsVisibleTo Include="Nexum.Migration.MediatR" />
     <InternalsVisibleTo Include="Nexum.Migration.MediatR.Tests" />
     <InternalsVisibleTo Include="Nexum.NativeAot.SmokeTest" />
+    <InternalsVisibleTo Include="Nexum.Testing" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Nexum.Testing\Nexum.Testing.csproj" />
+    <ProjectReference Include="..\..\src\Nexum.Extensions.DependencyInjection\Nexum.Extensions.DependencyInjection.csproj" />
+  </ItemGroup>
+</Project>
