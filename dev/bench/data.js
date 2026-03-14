@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1773521414488,
+  "lastUpdate": 1773527762157,
   "repoUrl": "https://github.com/asawicki/nexum",
   "entries": {
     "Benchmark": [
@@ -378,6 +378,54 @@ window.BENCHMARK_DATA = {
             "value": 167.0768824974696,
             "unit": "ns",
             "range": "± 20.792159704852935"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "artur.sawicki@gmail.com",
+            "name": "asawicki",
+            "username": "asawicki"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "90d2cc4514e31acc6da613edcc6e06cfedbd8f1b",
+          "message": "Merge pull request #8 from asawicki/feature/r7.2-pipeline-delegate-caching\n\nFeature/r7.2 pipeline delegate caching",
+          "timestamp": "2026-03-14T23:33:48+01:00",
+          "tree_id": "c83a870187df34a686b904df880f9de316b5b7b8",
+          "url": "https://github.com/asawicki/nexum/commit/90d2cc4514e31acc6da613edcc6e06cfedbd8f1b"
+        },
+        "date": 1773527761826,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleCommand",
+            "value": 61.24736673633257,
+            "unit": "ns",
+            "range": "± 0.05454693980756342"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3Behaviors",
+            "value": 227.52928093274434,
+            "unit": "ns",
+            "range": "± 2.7096602190526964"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleQuery",
+            "value": 49.54477240641912,
+            "unit": "ns",
+            "range": "± 0.049937050381202865"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3NotificationHandlers_Sequential",
+            "value": 138.32193190710885,
+            "unit": "ns",
+            "range": "± 0.25549533072829445"
           }
         ]
       }
