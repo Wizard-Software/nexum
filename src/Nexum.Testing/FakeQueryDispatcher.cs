@@ -16,9 +16,7 @@ namespace Nexum.Testing;
 /// </remarks>
 public sealed class FakeQueryDispatcher : IQueryDispatcher
 {
-    private readonly ConcurrentDictionary<Type, object> _setups = new();
     private readonly ConcurrentDictionary<Type, Func<object, CancellationToken, ValueTask<object?>>> _dispatchers = new();
-    private readonly ConcurrentDictionary<Type, object> _streamSetups = new();
     private readonly ConcurrentDictionary<Type, Func<object, CancellationToken, object>> _streamDispatchers = new();
     private ConcurrentQueue<object> _dispatched = new();
 
@@ -31,7 +29,6 @@ public sealed class FakeQueryDispatcher : IQueryDispatcher
     public FakeQuerySetup<TQuery, TResult> Setup<TQuery, TResult>() where TQuery : IQuery<TResult>
     {
         var setup = new FakeQuerySetup<TQuery, TResult>();
-        _setups[typeof(TQuery)] = setup;
         _dispatchers[typeof(TQuery)] = async (q, ct) =>
         {
             var handler = setup.Handler
@@ -55,7 +52,6 @@ public sealed class FakeQueryDispatcher : IQueryDispatcher
     public FakeStreamSetup<TQuery, TResult> SetupStream<TQuery, TResult>() where TQuery : IStreamQuery<TResult>
     {
         var setup = new FakeStreamSetup<TQuery, TResult>();
-        _streamSetups[typeof(TQuery)] = setup;
         _streamDispatchers[typeof(TQuery)] = (q, ct) =>
         {
             var handler = setup.Handler
@@ -115,9 +111,7 @@ public sealed class FakeQueryDispatcher : IQueryDispatcher
     /// </summary>
     public void Reset()
     {
-        _setups.Clear();
         _dispatchers.Clear();
-        _streamSetups.Clear();
         _streamDispatchers.Clear();
         _dispatched = new ConcurrentQueue<object>();
     }

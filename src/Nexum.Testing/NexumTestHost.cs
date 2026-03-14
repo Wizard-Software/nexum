@@ -121,7 +121,7 @@ public sealed class NexumTestHost : IDisposable, IAsyncDisposable
 public sealed class NexumTestHostBuilder
 {
     private readonly List<Action<IServiceCollection>> _serviceActions = [];
-    private Action<NexumOptions>? _configureOptions;
+    private readonly List<Action<NexumOptions>> _configureOptionsActions = [];
     private bool _useNotificationCollector;
 
     /// <summary>
@@ -214,7 +214,7 @@ public sealed class NexumTestHostBuilder
     public NexumTestHostBuilder Configure(Action<NexumOptions> configure)
     {
         ArgumentNullException.ThrowIfNull(configure);
-        _configureOptions = configure;
+        _configureOptionsActions.Add(configure);
         return this;
     }
 
@@ -248,7 +248,11 @@ public sealed class NexumTestHostBuilder
 
         // Core infrastructure: options
         var options = new NexumOptions();
-        _configureOptions?.Invoke(options);
+        foreach (Action<NexumOptions> action in _configureOptionsActions)
+        {
+            action(options);
+        }
+
         services.AddSingleton(options);
 
         // Logging — NullLogger avoids any real logging noise in tests

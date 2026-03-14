@@ -28,6 +28,7 @@ public sealed class InMemoryNotificationCollector : INotificationPublisher
         PublishStrategy? strategy = null,
         CancellationToken ct = default) where TNotification : INotification
     {
+        ArgumentNullException.ThrowIfNull(notification);
         _notifications.Enqueue(notification);
         return ValueTask.CompletedTask;
     }

@@ -136,6 +136,18 @@ public sealed class FakeStreamSetup<TQuery, TResult> where TQuery : IStreamQuery
         return this;
     }
 
+    /// <summary>
+    /// Configures the dispatcher to throw the specified exception when this stream query is dispatched.
+    /// </summary>
+    /// <param name="exception">The exception to throw.</param>
+    /// <returns>This setup instance for chaining.</returns>
+    public FakeStreamSetup<TQuery, TResult> Throws(Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+        Handler = (_, _) => throw exception;
+        return this;
+    }
+
     private static async IAsyncEnumerable<TResult> ToAsyncEnumerableAsync(
         TResult[] items,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct)
@@ -144,7 +156,8 @@ public sealed class FakeStreamSetup<TQuery, TResult> where TQuery : IStreamQuery
         {
             ct.ThrowIfCancellationRequested();
             yield return item;
-            await Task.Yield();
         }
+
+        await ValueTask.CompletedTask.ConfigureAwait(false);
     }
 }

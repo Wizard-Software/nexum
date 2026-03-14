@@ -14,7 +14,6 @@ namespace Nexum.Testing;
 /// </remarks>
 public sealed class FakeCommandDispatcher : ICommandDispatcher
 {
-    private readonly ConcurrentDictionary<Type, object> _setups = new();
     private readonly ConcurrentDictionary<Type, Func<object, CancellationToken, ValueTask<object?>>> _dispatchers = new();
     private ConcurrentQueue<object> _dispatched = new();
 
@@ -27,7 +26,6 @@ public sealed class FakeCommandDispatcher : ICommandDispatcher
     public FakeCommandSetup<TCommand, TResult> Setup<TCommand, TResult>() where TCommand : ICommand<TResult>
     {
         var setup = new FakeCommandSetup<TCommand, TResult>();
-        _setups[typeof(TCommand)] = setup;
         _dispatchers[typeof(TCommand)] = async (cmd, ct) =>
         {
             var handler = setup.Handler
@@ -69,7 +67,6 @@ public sealed class FakeCommandDispatcher : ICommandDispatcher
     /// </summary>
     public void Reset()
     {
-        _setups.Clear();
         _dispatchers.Clear();
         _dispatched = new ConcurrentQueue<object>();
     }
