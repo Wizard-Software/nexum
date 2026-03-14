@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1772277676331,
+  "lastUpdate": 1773518166587,
   "repoUrl": "https://github.com/asawicki/nexum",
   "entries": {
     "Benchmark": [
@@ -294,6 +294,48 @@ window.BENCHMARK_DATA = {
             "value": 134.4759254370417,
             "unit": "ns",
             "range": "± 7.358356907734152"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "artur.sawicki@gmail.com",
+            "name": "asawicki",
+            "username": "asawicki"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "04be0ec3033cf2b3ed4ce29b2d7f16b95a1ab5d8",
+          "message": "Merge pull request #6 from asawicki/feature/migration-mediatr-completion\n\nFeature/migration mediatr completion",
+          "timestamp": "2026-03-14T20:52:43+01:00",
+          "tree_id": "b010536515851d26f3ad0edeb9823ea0f21d6ea2",
+          "url": "https://github.com/asawicki/nexum/commit/04be0ec3033cf2b3ed4ce29b2d7f16b95a1ab5d8"
+        },
+        "date": 1773518166083,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleCommand",
+            "value": 77.71895759304364,
+            "unit": "ns",
+            "range": "± 6.084816801844461"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3Behaviors",
+            "value": 208.03404686053594,
+            "unit": "ns",
+            "range": "± 7.978211537373282"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_5NotificationHandlers",
+            "value": 174.43966684891626,
+            "unit": "ns",
+            "range": "± 2.7329046842989477"
           }
         ]
       }
