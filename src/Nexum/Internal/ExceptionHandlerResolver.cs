@@ -316,6 +316,8 @@ internal sealed class ExceptionHandlerResolver(
         Justification = "Two-axis exception handler resolution: messageType and exceptionType come from type hierarchy walks. Handler types are registered explicitly in DI — trimmer cannot verify list elements statically.")]
     [UnconditionalSuppressMessage("Trimming", "IL2062",
         Justification = "messageTypeHierarchy and exceptionTypeHierarchy contain runtime-discovered types. DI registrations ensure required members are preserved.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2067",
+        Justification = "handlerType is constructed via MakeGenericType from handlerOpenGeneric (a closed ICommandExceptionHandler<,>/IQueryExceptionHandler<,>/INotificationExceptionHandler<,>) — PublicMethods are preserved by DI registrations.")]
     private async ValueTask InvokeHandlersAsync(
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type handlerOpenGeneric,
         List<Type> messageTypeHierarchy,
