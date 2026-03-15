@@ -21,17 +21,19 @@
     public static class NexumStreamingServiceCollectionExtensions
     {
         public static Microsoft.AspNetCore.SignalR.ISignalRServerBuilder AddNexumSignalR(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
-        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("AddNexumStreaming registers StreamNotificationPublisher which uses MakeGenericTyp" +
-            "e at runtime. Use the Source Generator path for NativeAOT-safe dispatch.")]
-        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("AddNexumStreaming registers StreamNotificationPublisher which uses MakeGenericTyp" +
-            "e at runtime. Use the Source Generator path for NativeAOT / trim-safe dispatch.")]
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("AddNexumStreaming registers StreamNotificationPublisher which resolves open-gener" +
+            "ic handlers from DI at runtime. Use the Source Generator path for NativeAOT-safe" +
+            " dispatch.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("AddNexumStreaming registers StreamNotificationPublisher which resolves open-gener" +
+            "ic handlers from DI at runtime. Use the Source Generator path for NativeAOT / tr" +
+            "im-safe dispatch.")]
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddNexumStreaming(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<Nexum.Streaming.NexumStreamingOptions>? configure = null) { }
     }
-    [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("StreamNotificationPublisher uses MakeGenericType to resolve handlers. Use the Sou" +
-        "rce Generator path for NativeAOT-safe dispatch.")]
-    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("StreamNotificationPublisher resolves IStreamNotificationHandler<,> via MakeGeneri" +
-        "cType at runtime. Use the Source Generator path for NativeAOT / trim-safe dispat" +
-        "ch.")]
+    [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("StreamNotificationPublisher resolves open-generic handler types from DI at runtim" +
+        "e. Use the Source Generator path for NativeAOT-safe dispatch.")]
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("StreamNotificationPublisher resolves open-generic IStreamNotificationHandler<,> f" +
+        "rom DI at runtime. Use the Source Generator path for NativeAOT / trim-safe dispa" +
+        "tch.")]
     public sealed class StreamNotificationPublisher : Nexum.Abstractions.IStreamNotificationPublisher
     {
         public StreamNotificationPublisher(System.IServiceProvider serviceProvider, Microsoft.Extensions.Options.IOptions<Nexum.Streaming.NexumStreamingOptions> options) { }
