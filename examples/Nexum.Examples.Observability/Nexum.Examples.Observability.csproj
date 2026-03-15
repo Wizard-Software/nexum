@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <ProjectReference Include="../../src/Nexum.Abstractions/Nexum.Abstractions.csproj" />
+    <ProjectReference Include="../../src/Nexum/Nexum.csproj" />
+    <ProjectReference Include="../../src/Nexum.Extensions.DependencyInjection/Nexum.Extensions.DependencyInjection.csproj" />
+    <ProjectReference Include="../../src/Nexum.Extensions.AspNetCore/Nexum.Extensions.AspNetCore.csproj" />
+    <ProjectReference Include="../../src/Nexum.OpenTelemetry/Nexum.OpenTelemetry.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" />
+  </ItemGroup>
+</Project>

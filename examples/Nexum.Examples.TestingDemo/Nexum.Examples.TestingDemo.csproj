@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Override OutputType — examples/Directory.Build.props sets OutputType=Exe, but xUnit needs Library -->
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Nexum.Abstractions/Nexum.Abstractions.csproj" />
+    <ProjectReference Include="../../src/Nexum/Nexum.csproj" />
+    <ProjectReference Include="../../src/Nexum.Extensions.DependencyInjection/Nexum.Extensions.DependencyInjection.csproj" />
+    <ProjectReference Include="../../src/Nexum.Testing/Nexum.Testing.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="AwesomeAssertions" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+  </ItemGroup>
+</Project>

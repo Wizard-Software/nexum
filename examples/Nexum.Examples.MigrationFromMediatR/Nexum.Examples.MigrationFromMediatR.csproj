@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../../src/Nexum.Abstractions/Nexum.Abstractions.csproj" />
+    <ProjectReference Include="../../src/Nexum/Nexum.csproj" />
+    <ProjectReference Include="../../src/Nexum.Extensions.DependencyInjection/Nexum.Extensions.DependencyInjection.csproj" />
+    <ProjectReference Include="../../src/Nexum.Migration.MediatR/Nexum.Migration.MediatR.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+</Project>
