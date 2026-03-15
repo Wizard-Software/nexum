@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Nexum Streaming Example — SSE Price Updates</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 600px; margin: 2rem auto; }
+        h1 { font-size: 1.4rem; }
+        #status { padding: 0.5rem; border-radius: 4px; margin-bottom: 1rem; }
+        .connected { background: #d4edda; color: #155724; }
+        .disconnected { background: #f8d7da; color: #721c24; }
+        ul { list-style: none; padding: 0; }
+        li { padding: 0.3rem 0.5rem; border-bottom: 1px solid #eee; font-family: monospace; }
+        li:nth-child(even) { background: #f8f9fa; }
+        button { padding: 0.4rem 1rem; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Nexum Streaming — SSE Price Updates</h1>
+    <div id="status" class="disconnected">Disconnected</div>
+    <button id="connectBtn">Connect</button>
+    <button id="disconnectBtn" disabled>Disconnect</button>
+    <ul id="prices"></ul>
+
+    <script>
+        let eventSource = null;
+        const statusEl = document.getElementById('status');
+        const pricesEl = document.getElementById('prices');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+
+        connectBtn.addEventListener('click', () => {
+            // Connect to the SSE endpoint provided by MapNexumStream
+            eventSource = new EventSource('/api/prices/stream');
+
+            eventSource.onopen = () => {
+                statusEl.textContent = 'Connected — receiving price updates...';
+                statusEl.className = 'connected';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+            };
+
+            eventSource.onmessage = (event) => {
+                const update = JSON.parse(event.data);
+                const li = document.createElement('li');
+                const time = new Date(update.timestamp).toLocaleTimeString();
+                li.textContent = `${time}  ${update.symbol}  $${update.price.toFixed(2)}`;
+                pricesEl.prepend(li);
+
+                // Keep only the last 50 updates visible
+                while (pricesEl.children.length > 50) {
+                    pricesEl.removeChild(pricesEl.lastChild);
+                }
+            };
+
+            eventSource.onerror = () => {
+                statusEl.textContent = 'Connection lost';
+                statusEl.className = 'disconnected';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                eventSource.close();
+                eventSource = null;
+            };
+        });
+
+        disconnectBtn.addEventListener('click', () => {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+            statusEl.textContent = 'Disconnected';
+            statusEl.className = 'disconnected';
+            connectBtn.disabled = false;
+            disconnectBtn.disabled = true;
+        });
+    </script>
+</body>
+</html>

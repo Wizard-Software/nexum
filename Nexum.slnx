@@ -34,4 +34,19 @@
   <Folder Name="/benchmarks/">
     <Project Path="benchmarks/Nexum.Benchmarks/Nexum.Benchmarks.csproj" />
   </Folder>
+  <Folder Name="/examples/">
+    <Project Path="examples/Nexum.Examples.BasicCqrs/Nexum.Examples.BasicCqrs.csproj" />
+    <Project Path="examples/Nexum.Examples.Behaviors/Nexum.Examples.Behaviors.csproj" />
+    <Project Path="examples/Nexum.Examples.Notifications/Nexum.Examples.Notifications.csproj" />
+    <Project Path="examples/Nexum.Examples.WebApi/Nexum.Examples.WebApi.csproj" />
+    <Project Path="examples/Nexum.Examples.ResultsValidation/Nexum.Examples.ResultsValidation.csproj" />
+    <Project Path="examples/Nexum.Examples.Observability/Nexum.Examples.Observability.csproj" />
+    <Project Path="examples/Nexum.Examples.Batching/Nexum.Examples.Batching.csproj" />
+    <Project Path="examples/Nexum.Examples.Streaming/Nexum.Examples.Streaming.csproj" />
+    <Project Path="examples/Nexum.Examples.MigrationFromMediatR/Nexum.Examples.MigrationFromMediatR.csproj" />
+    <Project Path="examples/Nexum.Examples.Advanced/Nexum.Examples.Advanced.csproj" />
+    <Project Path="examples/Nexum.Examples.TestingDemo/Nexum.Examples.TestingDemo.csproj" />
+    <Project Path="examples/Nexum.Examples.SourceGenerators/Nexum.Examples.SourceGenerators.csproj" />
+    <Project Path="examples/Nexum.Examples.NexumEndpoints/Nexum.Examples.NexumEndpoints.csproj" />
+  </Folder>
 </Solution>
