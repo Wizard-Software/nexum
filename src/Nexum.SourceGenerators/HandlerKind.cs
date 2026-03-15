@@ -8,6 +8,7 @@ namespace Nexum.SourceGenerators
         Command,
         Query,
         StreamQuery,
-        Notification
+        Notification,
+        StreamNotification
     }
 }

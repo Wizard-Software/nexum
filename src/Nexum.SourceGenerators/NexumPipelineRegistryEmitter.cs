@@ -94,6 +94,9 @@ namespace Nexum.SourceGenerators
                     case HandlerKind.Notification:
                         // Already filtered out above, should never reach here
                         break;
+                    case HandlerKind.StreamNotification:
+                        // StreamNotification handlers do not participate in pipeline delegate generation
+                        break;
                     default:
                         // Unknown handler kind
                         break;
@@ -165,6 +168,7 @@ namespace Nexum.SourceGenerators
                 HandlerKind.Query => BehaviorKind.Query,
                 HandlerKind.StreamQuery => BehaviorKind.StreamQuery,
                 HandlerKind.Notification => null,
+                HandlerKind.StreamNotification => null,
                 _ => null
             };
 

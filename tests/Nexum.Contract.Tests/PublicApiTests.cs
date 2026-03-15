@@ -57,4 +57,11 @@ public sealed class PublicApiTests
         var publicApi = typeof(Nexum.Extensions.AspNetCore.NexumProblemDetailsOptions).Assembly.GeneratePublicApi(s_options);
         return Verify(publicApi).UseMethodName("NexumExtensionsAspNetCore");
     }
+
+    [Fact]
+    public Task NexumStreaming_PublicApi_ShouldNotChangeAsync()
+    {
+        var publicApi = typeof(Nexum.Streaming.NexumStreamingOptions).Assembly.GeneratePublicApi(s_options);
+        return Verify(publicApi).UseMethodName("NexumStreaming");
+    }
 }

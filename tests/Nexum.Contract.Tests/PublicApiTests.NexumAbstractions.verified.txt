@@ -1,4 +1,4 @@
-﻿namespace Nexum.Abstractions
+namespace Nexum.Abstractions
 {
     [System.AttributeUsage(System.AttributeTargets.Class, Inherited=false)]
     public sealed class BehaviorOrderAttribute : System.Attribute
@@ -86,6 +86,17 @@
         object? GetValue(TResult result);
         bool IsSuccess(TResult result);
     }
+    public interface IStreamNotificationHandler<in TNotification, TItem>
+        where in TNotification : Nexum.Abstractions.IStreamNotification<TItem>
+    {
+        System.Collections.Generic.IAsyncEnumerable<TItem> HandleAsync(TNotification notification, System.Threading.CancellationToken ct = default);
+    }
+    public interface IStreamNotificationPublisher
+    {
+        System.Collections.Generic.IAsyncEnumerable<TItem> StreamAsync<TNotification, TItem>(TNotification notification, System.Threading.CancellationToken ct = default)
+            where TNotification : Nexum.Abstractions.IStreamNotification<TItem>;
+    }
+    public interface IStreamNotification<out TItem> { }
     public interface IStreamQueryBehavior<in TQuery, TResult>
         where in TQuery : Nexum.Abstractions.IStreamQuery<TResult>
     {
@@ -132,6 +143,11 @@
         Singleton = 2,
     }
     [System.AttributeUsage(System.AttributeTargets.Class, Inherited=false)]
+    public sealed class NexumStreamHubAttribute : System.Attribute
+    {
+        public NexumStreamHubAttribute() { }
+    }
+    [System.AttributeUsage(System.AttributeTargets.Class, Inherited=false)]
     public sealed class NotificationHandlerAttribute : System.Attribute
     {
         public NotificationHandlerAttribute() { }
@@ -149,6 +165,11 @@
         public QueryHandlerAttribute() { }
     }
     public delegate System.Threading.Tasks.ValueTask<TResult> QueryHandlerDelegate<TResult>(System.Threading.CancellationToken ct);
+    [System.AttributeUsage(System.AttributeTargets.Class, Inherited=false)]
+    public sealed class StreamNotificationHandlerAttribute : System.Attribute
+    {
+        public StreamNotificationHandlerAttribute() { }
+    }
     [System.AttributeUsage(System.AttributeTargets.Class, Inherited=false)]
     public sealed class StreamQueryHandlerAttribute : System.Attribute
     {

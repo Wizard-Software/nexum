@@ -10,6 +10,7 @@ internal static class GeneratorTestHelper
 {
     private static readonly MetadataReference[] s_references = GetMetadataReferences();
     private static readonly MetadataReference[] s_aspNetCoreReferences = GetAspNetCoreMetadataReferences();
+    private static readonly MetadataReference[] s_signalRReferences = GetSignalRMetadataReferences();
 
     public static CSharpCompilation CreateCompilation(string source, string assemblyName = "TestAssembly")
     {
@@ -28,6 +29,20 @@ internal static class GeneratorTestHelper
             assemblyName,
             [syntaxTree],
             s_aspNetCoreReferences,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+    }
+
+    /// <summary>
+    /// Creates a compilation that includes ASP.NET Core + Microsoft.AspNetCore.SignalR references.
+    /// Required for testing hub generation with [NexumStreamHub].
+    /// </summary>
+    public static CSharpCompilation CreateSignalRCompilation(string source, string assemblyName = "TestAssembly")
+    {
+        SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source);
+        return CSharpCompilation.Create(
+            assemblyName,
+            [syntaxTree],
+            s_signalRReferences,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
     }
 
@@ -109,6 +124,37 @@ internal static class GeneratorTestHelper
         if (File.Exists(collectionsPath) && seen.Add(collectionsPath))
         {
             references.Add(MetadataReference.CreateFromFile(collectionsPath));
+        }
+
+        return references.ToArray();
+    }
+
+    private static MetadataReference[] GetSignalRMetadataReferences()
+    {
+        // Start with ASP.NET Core references (includes IEndpointRouteBuilder, HttpContext, etc.)
+        List<MetadataReference> references = [.. s_aspNetCoreReferences];
+        HashSet<string> seen = [];
+        foreach (MetadataReference metaRef in s_aspNetCoreReferences)
+        {
+            if (metaRef is PortableExecutableReference peRef && peRef.FilePath is not null)
+            {
+                seen.Add(peRef.FilePath);
+            }
+        }
+
+        // Add SignalR assemblies from the loaded framework
+        Type[] signalRTypes =
+        [
+            typeof(Microsoft.AspNetCore.SignalR.Hub),
+        ];
+
+        foreach (Type type in signalRTypes)
+        {
+            string location = type.Assembly.Location;
+            if (!string.IsNullOrEmpty(location) && seen.Add(location))
+            {
+                references.Add(MetadataReference.CreateFromFile(location));
+            }
         }
 
         return references.ToArray();

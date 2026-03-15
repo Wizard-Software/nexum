@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Streaming notifications, SignalR integration, and SSE endpoints for Nexum.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nexum.Abstractions\Nexum.Abstractions.csproj" />
+    <ProjectReference Include="..\Nexum\Nexum.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Nexum.Streaming.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -17,14 +17,17 @@ namespace Nexum.SourceGenerators
         private const string QueryHandlerAttributeFQN = "Nexum.Abstractions.QueryHandlerAttribute";
         private const string StreamQueryHandlerAttributeFQN = "Nexum.Abstractions.StreamQueryHandlerAttribute";
         private const string NotificationHandlerAttributeFQN = "Nexum.Abstractions.NotificationHandlerAttribute";
+        private const string StreamNotificationHandlerAttributeFQN = "Nexum.Abstractions.StreamNotificationHandlerAttribute";
         private const string BehaviorOrderAttributeFQN = "Nexum.Abstractions.BehaviorOrderAttribute";
         private const string NexumEndpointAttributeFQN = "Nexum.Abstractions.NexumEndpointAttribute";
+        private const string NexumStreamHubAttributeFQN = "Nexum.Abstractions.NexumStreamHubAttribute";
 
         // Handler interface metadata names (without namespace, with arity)
         private const string CommandHandlerInterfaceName = "ICommandHandler";
         private const string QueryHandlerInterfaceName = "IQueryHandler";
         private const string StreamQueryHandlerInterfaceName = "IStreamQueryHandler";
         private const string NotificationHandlerInterfaceName = "INotificationHandler";
+        private const string StreamNotificationHandlerInterfaceName = "IStreamNotificationHandler";
 
         // Behavior interface metadata names (without namespace, arity is always 2)
         private const string CommandBehaviorInterfaceName = "ICommandBehavior";
@@ -65,6 +68,18 @@ namespace Nexum.SourceGenerators
                 predicate: static (node, _) => node is ClassDeclarationSyntax or RecordDeclarationSyntax,
                 transform: static (ctx, ct) => TransformHandler(ctx, HandlerKind.Notification, NotificationHandlerInterfaceName, 1, NotificationHandlerAttributeFQN, ct));
 
+            // StreamNotification handler discovery branch
+            IncrementalValuesProvider<HandlerRegistration?> streamNotificationHandlers = context.SyntaxProvider.ForAttributeWithMetadataName(
+                StreamNotificationHandlerAttributeFQN,
+                predicate: static (node, _) => node is ClassDeclarationSyntax or RecordDeclarationSyntax,
+                transform: static (ctx, ct) => TransformHandler(ctx, HandlerKind.StreamNotification, StreamNotificationHandlerInterfaceName, 2, StreamNotificationHandlerAttributeFQN, ct));
+
+            // Hub discovery branch
+            IncrementalValuesProvider<HubDiscovery?> hubDiscoveries = context.SyntaxProvider.ForAttributeWithMetadataName(
+                NexumStreamHubAttributeFQN,
+                predicate: static (node, _) => node is ClassDeclarationSyntax,
+                transform: static (ctx, ct) => TransformHub(ctx, ct));
+
             // Behavior discovery branch
             IncrementalValuesProvider<EquatableArray<BehaviorRegistration>> behaviorGroups = context.SyntaxProvider.ForAttributeWithMetadataName(
                 BehaviorOrderAttributeFQN,
@@ -83,17 +98,26 @@ namespace Nexum.SourceGenerators
                     predicate: static (node, _) => IsDispatchInvocation(node),
                     transform: static (ctx, ct) => TransformCallSite(ctx, ct));
 
-            // Combine all 4 handler branches
+            // Combine all 5 handler branches (command, query, streamQuery, notification, streamNotification)
             IncrementalValueProvider<EquatableArray<HandlerRegistration>> allHandlers = commandHandlers.Collect()
                 .Combine(queryHandlers.Collect())
                 .Combine(streamQueryHandlers.Collect())
                 .Combine(notificationHandlers.Collect())
+                .Combine(streamNotificationHandlers.Collect())
                 .Select(static (combined, _) =>
                 {
                     var list = new List<HandlerRegistration>();
 
-                    // Flatten ((a, b), c), d)
-                    foreach (HandlerRegistration? item in combined.Left.Left.Left)
+                    // Flatten (((( a, b ), c), d), e)
+                    foreach (HandlerRegistration? item in combined.Left.Left.Left.Left)
+                    {
+                        if (item is not null)
+                        {
+                            list.Add(item);
+                        }
+                    }
+
+                    foreach (HandlerRegistration? item in combined.Left.Left.Left.Right)
                     {
                         if (item is not null)
                         {
@@ -173,18 +197,35 @@ namespace Nexum.SourceGenerators
                     return new EquatableArray<InterceptorCallSite>(list.ToArray());
                 });
 
-            // Combine handlers + behaviors + endpoints + call-sites + compilation
+            // Collect all hub discoveries
+            IncrementalValueProvider<EquatableArray<HubDiscovery>> allHubs = hubDiscoveries.Collect()
+                .Select(static (items, _) =>
+                {
+                    var list = new List<HubDiscovery>();
+                    foreach (HubDiscovery? item in items)
+                    {
+                        if (item is not null)
+                        {
+                            list.Add(item.Value);
+                        }
+                    }
+                    return new EquatableArray<HubDiscovery>(list.ToArray());
+                });
+
+            // Combine handlers + behaviors + endpoints + call-sites + hubs + compilation
             IncrementalValueProvider<(EquatableArray<HandlerRegistration> Left, EquatableArray<BehaviorRegistration> Right)> handlersAndBehaviors = allHandlers.Combine(allBehaviors);
             IncrementalValueProvider<((EquatableArray<HandlerRegistration> Left, EquatableArray<BehaviorRegistration> Right) Left, EquatableArray<EndpointRegistration> Right)> handlersAndBehaviorsAndEndpoints = handlersAndBehaviors.Combine(allEndpoints);
             IncrementalValueProvider<(((EquatableArray<HandlerRegistration> Left, EquatableArray<BehaviorRegistration> Right) Left, EquatableArray<EndpointRegistration> Right) Left, EquatableArray<InterceptorCallSite> Right)> handlersAndBehaviorsAndEndpointsAndCallSites = handlersAndBehaviorsAndEndpoints.Combine(allCallSites);
-            IncrementalValueProvider<((((EquatableArray<HandlerRegistration> Left, EquatableArray<BehaviorRegistration> Right) Left, EquatableArray<EndpointRegistration> Right) Left, EquatableArray<InterceptorCallSite> Right) Left, Compilation Right)> combined = handlersAndBehaviorsAndEndpointsAndCallSites.Combine(context.CompilationProvider);
+            IncrementalValueProvider<((((EquatableArray<HandlerRegistration> Left, EquatableArray<BehaviorRegistration> Right) Left, EquatableArray<EndpointRegistration> Right) Left, EquatableArray<InterceptorCallSite> Right) Left, EquatableArray<HubDiscovery> Right)> withHubs = handlersAndBehaviorsAndEndpointsAndCallSites.Combine(allHubs);
+            IncrementalValueProvider<(((((EquatableArray<HandlerRegistration> Left, EquatableArray<BehaviorRegistration> Right) Left, EquatableArray<EndpointRegistration> Right) Left, EquatableArray<InterceptorCallSite> Right) Left, EquatableArray<HubDiscovery> Right) Left, Compilation Right)> combined = withHubs.Combine(context.CompilationProvider);
 
             context.RegisterSourceOutput(combined, static (spc, source) =>
             {
-                EquatableArray<HandlerRegistration> registrations = source.Left.Left.Left.Left;
-                EquatableArray<BehaviorRegistration> behaviorRegs = source.Left.Left.Left.Right;
-                EquatableArray<EndpointRegistration> endpointRegs = source.Left.Left.Right;
-                EquatableArray<InterceptorCallSite> callSitesList = source.Left.Right;
+                EquatableArray<HandlerRegistration> registrations = source.Left.Left.Left.Left.Left;
+                EquatableArray<BehaviorRegistration> behaviorRegs = source.Left.Left.Left.Left.Right;
+                EquatableArray<EndpointRegistration> endpointRegs = source.Left.Left.Left.Right;
+                EquatableArray<InterceptorCallSite> callSitesList = source.Left.Left.Right;
+                EquatableArray<HubDiscovery> hubDiscoveryList = source.Left.Right;
                 Compilation compilation = source.Right;
 
                 // Report NEXUM004 for invalid registrations
@@ -206,9 +247,9 @@ namespace Nexum.SourceGenerators
                     }
                 }
 
-                // Report NEXUM002 for duplicate handlers (commands/queries only, not notifications)
+                // Report NEXUM002 for duplicate handlers (commands/queries only, not notification/stream-notification)
                 IEnumerable<IGrouping<(string MessageFullyQualifiedName, HandlerKind Kind), HandlerRegistration>> grouped = validRegistrations
-                    .Where(r => r.Kind != HandlerKind.Notification)
+                    .Where(r => r.Kind is not HandlerKind.Notification and not HandlerKind.StreamNotification)
                     .GroupBy(r => (r.MessageFullyQualifiedName, r.Kind));
 
                 foreach (IGrouping<(string MessageFullyQualifiedName, HandlerKind Kind), HandlerRegistration> group in grouped)
@@ -227,13 +268,14 @@ namespace Nexum.SourceGenerators
                 }
 
                 // Filter out duplicates from code generation (keep first)
+                // Notifications and StreamNotifications allow multiple handlers per message — key includes handler FQN
                 var deduped = new List<HandlerRegistration>();
                 var seen = new HashSet<string>();
                 foreach (HandlerRegistration reg in validRegistrations)
                 {
-                    string key = reg.Kind != HandlerKind.Notification
-                        ? $"{reg.Kind}:{reg.MessageFullyQualifiedName}"
-                        : $"{reg.Kind}:{reg.MessageFullyQualifiedName}:{reg.HandlerFullyQualifiedName}";
+                    string key = reg.Kind is HandlerKind.Notification or HandlerKind.StreamNotification
+                        ? $"{reg.Kind}:{reg.MessageFullyQualifiedName}:{reg.HandlerFullyQualifiedName}"
+                        : $"{reg.Kind}:{reg.MessageFullyQualifiedName}";
                     if (seen.Add(key))
                     {
                         deduped.Add(reg);
@@ -391,6 +433,74 @@ namespace Nexum.SourceGenerators
                             new EquatableArray<HandlerRegistration>(deduped.ToArray()),
                             behaviorRegs.Length > 0);
                         spc.AddSource("NexumInterceptors.g.cs", interceptorSource);
+                    }
+                }
+
+                // Process hub method generation (ADR-009 D9 guard pattern — check for SignalR)
+                if (hubDiscoveryList.Length > 0)
+                {
+                    if (compilation.GetTypeByMetadataName("Microsoft.AspNetCore.SignalR.Hub") is null)
+                    {
+                        // Silent skip — SignalR not referenced in this compilation
+                        return;
+                    }
+
+                    // Build the stream-capable handlers lookup (StreamQuery + StreamNotification only)
+                    var streamHandlersByMessage = new Dictionary<string, HandlerRegistration>();
+                    foreach (HandlerRegistration reg in deduped)
+                    {
+                        if (reg.Kind is HandlerKind.StreamQuery or HandlerKind.StreamNotification)
+                        {
+                            // For notifications multiple handlers per message are allowed — use first for method gen
+                            if (!streamHandlersByMessage.ContainsKey(reg.MessageFullyQualifiedName))
+                            {
+                                streamHandlersByMessage[reg.MessageFullyQualifiedName] = reg;
+                            }
+                        }
+                    }
+
+                    // Emit a partial class file per hub
+                    foreach (HubDiscovery discovery in hubDiscoveryList)
+                    {
+                        var methods = new List<HubMethodRegistration>();
+
+                        // Empty StreamHandlerMessageFQNs means "all stream handlers in compilation"
+                        System.Collections.Generic.IEnumerable<HandlerRegistration> candidates =
+                            discovery.StreamHandlerMessageFQNs.Length == 0
+                                ? streamHandlersByMessage.Values
+                                : GetFilteredHandlers(discovery.StreamHandlerMessageFQNs, streamHandlersByMessage);
+
+                        foreach (HandlerRegistration reg in candidates)
+                        {
+                            if (reg.ResultFullyQualifiedName is null)
+                            {
+                                continue;
+                            }
+
+                            string methodName = NexumHubEmitter.DeriveMethodName(reg.MessageFullyQualifiedName);
+                            methods.Add(new HubMethodRegistration(
+                                MethodName: methodName,
+                                MessageFullyQualifiedName: reg.MessageFullyQualifiedName,
+                                ResultFullyQualifiedName: reg.ResultFullyQualifiedName,
+                                Kind: reg.Kind));
+                        }
+
+                        if (methods.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        var hub = new HubRegistration(
+                            HubFullyQualifiedName: discovery.HubFullyQualifiedName,
+                            HubNamespace: discovery.HubNamespace,
+                            HubClassName: discovery.HubClassName,
+                            Methods: new EquatableArray<HubMethodRegistration>(methods.ToArray()));
+
+                        string hubSource = NexumHubEmitter.Emit(hub);
+
+                        // Use a safe file name derived from the hub FQN
+                        string safeFileName = hub.HubFullyQualifiedName.Replace('.', '_').Replace('<', '_').Replace('>', '_');
+                        spc.AddSource($"NexumHub_{safeFileName}.g.cs", hubSource);
                     }
                 }
             });
@@ -771,6 +881,48 @@ namespace Nexum.SourceGenerators
                 GroupName: groupName,
                 Kind: kind.Value,
                 HasResultMembers: hasResultMembers);
+        }
+
+        private static System.Collections.Generic.IEnumerable<HandlerRegistration> GetFilteredHandlers(
+            EquatableArray<string> messageFQNs,
+            Dictionary<string, HandlerRegistration> handlersByMessage)
+        {
+            foreach (string messageFQN in messageFQNs)
+            {
+                if (handlersByMessage.TryGetValue(messageFQN, out HandlerRegistration reg))
+                {
+                    yield return reg;
+                }
+            }
+        }
+
+        private static HubDiscovery? TransformHub(
+            GeneratorAttributeSyntaxContext context,
+            CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            var symbol = (INamedTypeSymbol)context.TargetSymbol;
+            string hubFQN = GetFullyQualifiedName(symbol);
+            string? hubNamespace = GetNamespaceName(symbol.ContainingNamespace);
+
+            // Hub must have a namespace (global namespace not supported for partial classes)
+            if (hubNamespace is null)
+            {
+                return null;
+            }
+
+            string hubClassName = symbol.Name;
+
+            // The [NexumStreamHub] attribute currently takes no arguments —
+            // all stream handlers in the compilation are eligible for method generation.
+            // We store an empty array to signal "match all" — correlation with handlers
+            // happens in RegisterSourceOutput where we have access to all handler registrations.
+            return new HubDiscovery(
+                hubFQN,
+                hubNamespace,
+                hubClassName,
+                new EquatableArray<string>(System.Array.Empty<string>()));
         }
 
         private static string GetFullyQualifiedName(INamedTypeSymbol symbol)
