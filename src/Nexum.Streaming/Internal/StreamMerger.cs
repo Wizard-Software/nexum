@@ -69,11 +69,19 @@ internal static class StreamMerger
             TaskContinuationOptions.ExecuteSynchronously,
             TaskScheduler.Default);
 
-        // Yield items as they arrive
-        await foreach (T item in channel.Reader.ReadAllAsync(cts.Token).ConfigureAwait(false))
+        // Yield items as they arrive.
+        // Use the original ct (not cts.Token) so that consumer-side cancellation throws
+        // OperationCanceledException, while producer faults complete the channel with an exception
+        // that surfaces via ReadAllAsync when the channel is drained.
+        await foreach (T item in channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
         {
             yield return item;
         }
+
+        // After the channel completes, await producers to propagate original exceptions.
+        // If a producer faulted, channel.Reader.ReadAllAsync will have thrown ChannelClosedException
+        // wrapping the AggregateException. This await ensures cleanup and surfaces any remaining faults.
+        await Task.WhenAll(producerTasks).ConfigureAwait(false);
     }
 
     private static async Task ProduceAsync<T>(

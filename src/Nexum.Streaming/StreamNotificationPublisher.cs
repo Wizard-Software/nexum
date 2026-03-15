@@ -24,15 +24,15 @@ namespace Nexum.Streaming;
 /// <item>If N handlers — merge streams via <see cref="StreamMerger.MergeAsync{T}"/> using a <c>BoundedChannel</c>.</item>
 /// </list>
 /// <para>
-/// NativeAOT note: this class uses <c>MakeGenericType</c> on the runtime path and is therefore not
-/// compatible with NativeAOT trimming. Use the Source Generator path for trimming-safe dispatch.
+/// NativeAOT note: this class resolves open-generic handler types from DI at runtime, which may
+/// not be compatible with NativeAOT trimming. Use the Source Generator path for trimming-safe dispatch.
 /// </para>
 /// </remarks>
 [RequiresUnreferencedCode(
-    "StreamNotificationPublisher resolves IStreamNotificationHandler<,> via MakeGenericType at runtime. " +
+    "StreamNotificationPublisher resolves open-generic IStreamNotificationHandler<,> from DI at runtime. " +
     "Use the Source Generator path for NativeAOT / trim-safe dispatch.")]
 [RequiresDynamicCode(
-    "StreamNotificationPublisher uses MakeGenericType to resolve handlers. " +
+    "StreamNotificationPublisher resolves open-generic handler types from DI at runtime. " +
     "Use the Source Generator path for NativeAOT-safe dispatch.")]
 public sealed class StreamNotificationPublisher : IStreamNotificationPublisher
 {
@@ -51,8 +51,9 @@ public sealed class StreamNotificationPublisher : IStreamNotificationPublisher
         IServiceProvider serviceProvider,
         IOptions<NexumStreamingOptions> options)
     {
-        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        ArgumentNullException.ThrowIfNull(serviceProvider);
         ArgumentNullException.ThrowIfNull(options);
+        _serviceProvider = serviceProvider;
         _options = options.Value;
     }
 

@@ -919,10 +919,10 @@ namespace Nexum.SourceGenerators
             // We store an empty array to signal "match all" — correlation with handlers
             // happens in RegisterSourceOutput where we have access to all handler registrations.
             return new HubDiscovery(
-                hubFullyQualifiedName: hubFQN,
-                hubNamespace: hubNamespace,
-                hubClassName: hubClassName,
-                streamHandlerMessageFQNs: new EquatableArray<string>(System.Array.Empty<string>()));
+                hubFQN,
+                hubNamespace,
+                hubClassName,
+                new EquatableArray<string>(System.Array.Empty<string>()));
         }
 
         private static string GetFullyQualifiedName(INamedTypeSymbol symbol)

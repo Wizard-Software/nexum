@@ -30,10 +30,10 @@ public static class NexumStreamingServiceCollectionExtensions
     /// </para>
     /// </remarks>
     [RequiresUnreferencedCode(
-        "AddNexumStreaming registers StreamNotificationPublisher which uses MakeGenericType at runtime. " +
+        "AddNexumStreaming registers StreamNotificationPublisher which resolves open-generic handlers from DI at runtime. " +
         "Use the Source Generator path for NativeAOT / trim-safe dispatch.")]
     [RequiresDynamicCode(
-        "AddNexumStreaming registers StreamNotificationPublisher which uses MakeGenericType at runtime. " +
+        "AddNexumStreaming registers StreamNotificationPublisher which resolves open-generic handlers from DI at runtime. " +
         "Use the Source Generator path for NativeAOT-safe dispatch.")]
     public static IServiceCollection AddNexumStreaming(
         this IServiceCollection services,

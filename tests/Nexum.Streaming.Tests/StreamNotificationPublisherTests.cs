@@ -203,9 +203,9 @@ public sealed class StreamNotificationPublisherTests
             }
         };
 
-        // Assert — when a handler throws, the merged stream stops (either the original exception or
-        // OperationCanceledException as the CTS is cancelled to stop remaining handlers).
-        await act.Should().ThrowAsync<Exception>();
+        // Assert — when a handler throws, the original exception propagates to the consumer
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("handler failure");
     }
 
     [Fact]

@@ -170,8 +170,8 @@ public sealed class StreamMergerTests
             }
         };
 
-        // Assert — when a source throws, the merged stream stops (either the original exception or
-        // OperationCanceledException as the CTS is cancelled to stop the remaining producers).
-        await act.Should().ThrowAsync<Exception>();
+        // Assert — when a source throws, the original exception propagates to the consumer
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("source failure");
     }
 }
