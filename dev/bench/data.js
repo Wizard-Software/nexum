@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1773527762157,
+  "lastUpdate": 1773534070853,
   "repoUrl": "https://github.com/asawicki/nexum",
   "entries": {
     "Benchmark": [
@@ -426,6 +426,54 @@ window.BENCHMARK_DATA = {
             "value": 138.32193190710885,
             "unit": "ns",
             "range": "± 0.25549533072829445"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "artur.sawicki@gmail.com",
+            "name": "asawicki",
+            "username": "asawicki"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ff075a66d032d49991412bb9311b0c9441894985",
+          "message": "Merge pull request #9 from asawicki/feature/r8.1-r8.3-nexum-streaming\n\nR8.1-R8.3: Add Nexum.Streaming package",
+          "timestamp": "2026-03-15T01:18:56+01:00",
+          "tree_id": "e2b3cf6703e90e8c9f4a88e95e93dd5232fb06ea",
+          "url": "https://github.com/asawicki/nexum/commit/ff075a66d032d49991412bb9311b0c9441894985"
+        },
+        "date": 1773534070540,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleCommand",
+            "value": 57.51668103841635,
+            "unit": "ns",
+            "range": "± 0.09281288383361881"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3Behaviors",
+            "value": 223.1412684747151,
+            "unit": "ns",
+            "range": "± 1.0694199620555715"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleQuery",
+            "value": 50.22007894974489,
+            "unit": "ns",
+            "range": "± 0.026870351058732773"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3NotificationHandlers_Sequential",
+            "value": 116.76019266673497,
+            "unit": "ns",
+            "range": "± 0.18151458436691917"
           }
         ]
       }
