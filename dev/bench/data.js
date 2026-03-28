@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1773581746614,
+  "lastUpdate": 1774706152754,
   "repoUrl": "https://github.com/asawicki/nexum",
   "entries": {
     "Benchmark": [
@@ -522,6 +522,54 @@ window.BENCHMARK_DATA = {
             "value": 108.92649072011312,
             "unit": "ns",
             "range": "± 0.17148441268795628"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "artur.sawicki@gmail.com",
+            "name": "Artur Sawicki",
+            "username": "asawicki"
+          },
+          "committer": {
+            "email": "artur.sawicki@gmail.com",
+            "name": "asawicki",
+            "username": "asawicki"
+          },
+          "distinct": true,
+          "id": "1ccdcacb850c6bd0becac5db1edbfb78af33c04f",
+          "message": "Add Nexum.E2E.Tests project with end-to-end test coverage\n\nComprehensive E2E tests covering core dispatch (commands, queries, stream queries),\nbehavior pipelines, notification publish strategies, exception handlers, cancellation\ntokens, polymorphic dispatch, depth guards, handler lifetimes, ASP.NET Core endpoint\nmapping, and OpenTelemetry activity tracing.",
+          "timestamp": "2026-03-28T14:53:17+01:00",
+          "tree_id": "37547bc499783feb3e78fd796503b046ca7cfa9a",
+          "url": "https://github.com/asawicki/nexum/commit/1ccdcacb850c6bd0becac5db1edbfb78af33c04f"
+        },
+        "date": 1774706152337,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleCommand",
+            "value": 60.03497386437196,
+            "unit": "ns",
+            "range": "± 0.05642544181068014"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3Behaviors",
+            "value": 210.64237497647602,
+            "unit": "ns",
+            "range": "± 1.363732305750895"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleQuery",
+            "value": 51.392251448971884,
+            "unit": "ns",
+            "range": "± 0.06280614996454027"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3NotificationHandlers_Sequential",
+            "value": 109.35735206093106,
+            "unit": "ns",
+            "range": "± 0.12985699612144005"
           }
         ]
       }
