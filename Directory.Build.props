@@ -18,6 +18,7 @@
     <RepositoryUrl>https://github.com/asawicki/nexum.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>cqrs;mediator;commands;queries;notifications;source-generators;dotnet</PackageTags>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
@@ -42,7 +43,8 @@
 
   <!-- Package assets: README and LICENSE -->
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
+    <None Include="$(MSBuildThisFileDirectory)build/icon.png" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>
