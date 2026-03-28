@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774706152754,
+  "lastUpdate": 1774711773472,
   "repoUrl": "https://github.com/asawicki/nexum",
   "entries": {
     "Benchmark": [
@@ -570,6 +570,54 @@ window.BENCHMARK_DATA = {
             "value": 109.35735206093106,
             "unit": "ns",
             "range": "± 0.12985699612144005"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "artur.sawicki@gmail.com",
+            "name": "Artur Sawicki",
+            "username": "asawicki"
+          },
+          "committer": {
+            "email": "artur.sawicki@gmail.com",
+            "name": "asawicki",
+            "username": "asawicki"
+          },
+          "distinct": true,
+          "id": "cbb1bfd88134d5540cd32fafeb9c92d16909d070",
+          "message": "Add package icon and per-package README files for NuGet\n\n- Add PackageIcon property and pack build/icon.png into all packages\n- Create per-package README.md for each src/ project with package-specific\n  descriptions, installation instructions, and usage examples\n- Change PackageReadmeFile include to relative path so each package gets\n  its own README instead of the shared root one",
+          "timestamp": "2026-03-28T16:27:12+01:00",
+          "tree_id": "36614c0343f42474c1a6b8c3f1f5e92604303486",
+          "url": "https://github.com/asawicki/nexum/commit/cbb1bfd88134d5540cd32fafeb9c92d16909d070"
+        },
+        "date": 1774711773183,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleCommand",
+            "value": 59.92484514529888,
+            "unit": "ns",
+            "range": "± 0.07423996263012413"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3Behaviors",
+            "value": 226.91723934809366,
+            "unit": "ns",
+            "range": "± 1.911649355467027"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleQuery",
+            "value": 56.94292678282811,
+            "unit": "ns",
+            "range": "± 0.056068028197467215"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3NotificationHandlers_Sequential",
+            "value": 114.75659697396415,
+            "unit": "ns",
+            "range": "± 0.28009422690686137"
           }
         ]
       }
