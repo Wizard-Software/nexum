@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774711773472,
+  "lastUpdate": 1775339033339,
   "repoUrl": "https://github.com/asawicki/nexum",
   "entries": {
     "Benchmark": [
@@ -618,6 +618,54 @@ window.BENCHMARK_DATA = {
             "value": 114.75659697396415,
             "unit": "ns",
             "range": "± 0.28009422690686137"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "artur.sawicki@gmail.com",
+            "name": "asawicki",
+            "username": "asawicki"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0251934a1ba1db1dc5a3dfbebf40bb4db656e85e",
+          "message": "Merge pull request #11 from asawicki/feature/12.8a-nativeaot-compatibility\n\nAdd IsAotCompatible/IsTrimmable to all src/ NuGet packages",
+          "timestamp": "2026-04-04T23:41:29+02:00",
+          "tree_id": "0bc15d1645032ea100b653e43ccb3b08df682eee",
+          "url": "https://github.com/asawicki/nexum/commit/0251934a1ba1db1dc5a3dfbebf40bb4db656e85e"
+        },
+        "date": 1775339032469,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleCommand",
+            "value": 60.60537669291863,
+            "unit": "ns",
+            "range": "± 0.052684964763072585"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3Behaviors",
+            "value": 229.34664983749389,
+            "unit": "ns",
+            "range": "± 1.1984160974928468"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleQuery",
+            "value": 50.37697190472058,
+            "unit": "ns",
+            "range": "± 0.05088348885328584"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3NotificationHandlers_Sequential",
+            "value": 114.27705385287602,
+            "unit": "ns",
+            "range": "± 0.2610230348849004"
           }
         ]
       }
