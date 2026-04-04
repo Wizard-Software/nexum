@@ -173,6 +173,10 @@ internal sealed class NotificationBackgroundService(
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [UnconditionalSuppressMessage("Trimming", "IL2055",
         Justification = "NotificationType is always a concrete INotification implementation registered in DI — handler types are preserved by DI registrations at startup.")]
+    [UnconditionalSuppressMessage("AOT", "IL3050",
+        Justification = "Runtime-only path; handler types preserved by DI registrations. SG Tier 2/3 path eliminates reflection.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2072",
+        Justification = "Runtime-only path; handler types preserved by DI registrations. SG Tier 2/3 path eliminates reflection.")]
     private async Task InvokeHandlersInScopeAsync(NotificationEnvelope envelope, CancellationToken ct)
     {
         using IServiceScope scope = _scopeFactory.CreateScope();
@@ -231,6 +235,8 @@ internal sealed class NotificationBackgroundService(
     /// Uses cached <see cref="MethodInfo"/> for performance. The reflection result is boxed as <see cref="object"/>,
     /// cast to <see cref="ValueTask"/>, and awaited.
     /// </remarks>
+    [UnconditionalSuppressMessage("Trimming", "IL2070",
+        Justification = "Runtime-only path; handler types preserved by DI registrations. SG Tier 2/3 path eliminates reflection.")]
     private static async Task InvokeHandleAsyncAsync(
         object handler,
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)] Type closedHandlerType,

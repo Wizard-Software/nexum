@@ -144,7 +144,7 @@ public static class NexumServiceCollectionExtensions
     /// <param name="lifetime">The handler lifetime. Defaults to <see cref="NexumLifetime.Scoped"/>.</param>
     /// <returns>The service collection for chaining.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> is null.</exception>
-    public static IServiceCollection AddNexumHandler<TService, TImplementation>(
+    public static IServiceCollection AddNexumHandler<TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>(
         this IServiceCollection services,
         NexumLifetime lifetime = NexumLifetime.Scoped)
         where TService : class
@@ -183,7 +183,7 @@ public static class NexumServiceCollectionExtensions
     /// <exception cref="ArgumentException">Thrown when <paramref name="behaviorType"/> does not implement any behavior interface.</exception>
     public static IServiceCollection AddNexumBehavior(
         this IServiceCollection services,
-        Type behaviorType,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces | DynamicallyAccessedMemberTypes.PublicConstructors)] Type behaviorType,
         int? order = null,
         NexumLifetime lifetime = NexumLifetime.Transient)
     {
@@ -252,7 +252,7 @@ public static class NexumServiceCollectionExtensions
     /// <returns>The service collection for chaining.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown when <typeparamref name="THandler"/> does not implement any exception handler interface.</exception>
-    public static IServiceCollection AddNexumExceptionHandler<THandler>(
+    public static IServiceCollection AddNexumExceptionHandler<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces | DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(
         this IServiceCollection services,
         NexumLifetime lifetime = NexumLifetime.Transient)
         where THandler : class
@@ -299,7 +299,7 @@ public static class NexumServiceCollectionExtensions
     /// <returns>The service collection for chaining.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown when <typeparamref name="TAdapter"/> does not implement <c>IResultAdapter&lt;&gt;</c>.</exception>
-    public static IServiceCollection AddNexumResultAdapter<TAdapter>(
+    public static IServiceCollection AddNexumResultAdapter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces | DynamicallyAccessedMemberTypes.PublicConstructors)] TAdapter>(
         this IServiceCollection services)
         where TAdapter : class
     {

@@ -175,7 +175,9 @@ public static class MediatRCompatServiceCollectionExtensions
     /// Uses <c>TryAdd</c> so that native Nexum handlers registered later take priority.
     /// </summary>
     [RequiresDynamicCode("Uses MakeGenericType for adapter registration.")]
-    private static void TryRegisterDualInterfaceAdapters(IServiceCollection services, Type type)
+    private static void TryRegisterDualInterfaceAdapters(
+        IServiceCollection services,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type type)
     {
         foreach (Type iface in type.GetInterfaces())
         {
@@ -239,7 +241,9 @@ public static class MediatRCompatServiceCollectionExtensions
     /// the closed registration ensures constructor injection into the adapter works correctly.
     /// </remarks>
     [RequiresDynamicCode("Uses MakeGenericType for adapter registration.")]
-    private static void TryRegisterBehaviorAdapters(IServiceCollection services, Type type)
+    private static void TryRegisterBehaviorAdapters(
+        IServiceCollection services,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces | DynamicallyAccessedMemberTypes.PublicConstructors)] Type type)
     {
         foreach (Type iface in type.GetInterfaces())
         {
@@ -313,7 +317,9 @@ public static class MediatRCompatServiceCollectionExtensions
         }
     }
 
-    private static void RegisterNexumHandlerInterfaces(IServiceCollection services, Type implementationType)
+    private static void RegisterNexumHandlerInterfaces(
+        IServiceCollection services,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces | DynamicallyAccessedMemberTypes.PublicConstructors)] Type implementationType)
     {
         HandlerLifetimeAttribute? lifetimeAttr = implementationType.GetCustomAttribute<HandlerLifetimeAttribute>();
         ServiceLifetime serviceLifetime = lifetimeAttr is not null

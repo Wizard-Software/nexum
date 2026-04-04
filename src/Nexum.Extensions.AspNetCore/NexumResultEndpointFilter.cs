@@ -37,6 +37,8 @@ public sealed class NexumResultEndpointFilter(IServiceProvider serviceProvider) 
     private static readonly Type s_resultAdapterOpenGeneric = typeof(IResultAdapter<>);
 
     /// <inheritdoc />
+    [UnconditionalSuppressMessage("Trimming", "IL2055", Justification = "MakeGenericType is called with a runtime type from GetType(). Class is annotated [RequiresDynamicCode].")]
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "GetMethod is called on a type produced by MakeGenericType. Class is annotated [RequiresDynamicCode].")]
     public async ValueTask<object?> InvokeAsync(
         EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {

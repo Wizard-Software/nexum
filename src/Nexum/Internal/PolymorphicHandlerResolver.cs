@@ -115,6 +115,10 @@ internal static class PolymorphicHandlerResolver
     /// <item>Return <c>null</c> if no match is found in the entire hierarchy</item>
     /// </list>
     /// </remarks>
+    [UnconditionalSuppressMessage("Trimming", "IL2055",
+        Justification = "Runtime-only path; handler types preserved by DI registrations. SG Tier 2/3 path eliminates reflection.")]
+    [UnconditionalSuppressMessage("AOT", "IL3050",
+        Justification = "Runtime-only path; handler types preserved by DI registrations. SG Tier 2/3 path eliminates reflection.")]
     private static Type? ResolveCore(
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.Interfaces)] Type messageType,
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type handlerOpenGeneric,

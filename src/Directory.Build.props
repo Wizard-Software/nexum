@@ -1,0 +1,9 @@
+<Project>
+  <!-- Import root Directory.Build.props -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..'))" />
+
+  <!-- NativeAOT / Trimming compatibility for all src/ packages (net8.0+) -->
+  <PropertyGroup Condition="'$(TargetFramework)' != ''">
+    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsAotCompatible>
+  </PropertyGroup>
+</Project>

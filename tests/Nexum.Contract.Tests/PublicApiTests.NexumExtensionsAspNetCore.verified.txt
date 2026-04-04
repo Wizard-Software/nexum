@@ -17,10 +17,28 @@
     }
     public static class NexumEndpointRouteBuilderExtensions
     {
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("MapPost may generate code for the delegate parameters. Use AOT-safe endpoint regi" +
+            "stration for NativeAOT.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("MapPost uses reflection on the delegate and its parameters. Use AOT-safe endpoint" +
+            " registration for NativeAOT.")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("AOT", "IL3050", Justification="Covered by [RequiresDynamicCode] on this method — callers are warned.")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026", Justification="Covered by [RequiresUnreferencedCode] on this method — callers are warned.")]
         public static Microsoft.AspNetCore.Builder.RouteHandlerBuilder MapNexumCommand<TCommand>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string pattern)
             where TCommand : Nexum.Abstractions.IVoidCommand { }
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("MapPost may generate code for the delegate parameters. Use AOT-safe endpoint regi" +
+            "stration for NativeAOT.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("MapPost uses reflection on the delegate and its parameters. Use AOT-safe endpoint" +
+            " registration for NativeAOT.")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("AOT", "IL3050", Justification="Covered by [RequiresDynamicCode] on this method — callers are warned.")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026", Justification="Covered by [RequiresUnreferencedCode] on this method — callers are warned.")]
         public static Microsoft.AspNetCore.Builder.RouteHandlerBuilder MapNexumCommand<TCommand, TResult>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string pattern)
             where TCommand : Nexum.Abstractions.ICommand<TResult> { }
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("MapGet may generate code for the delegate parameters. Use AOT-safe endpoint regis" +
+            "tration for NativeAOT.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("MapGet uses reflection on the delegate and its parameters. Use AOT-safe endpoint " +
+            "registration for NativeAOT.")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("AOT", "IL3050", Justification="Covered by [RequiresDynamicCode] on this method — callers are warned.")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026", Justification="Covered by [RequiresUnreferencedCode] on this method — callers are warned.")]
         public static Microsoft.AspNetCore.Builder.RouteHandlerBuilder MapNexumQuery<TQuery, TResult>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string pattern)
             where TQuery : Nexum.Abstractions.IQuery<TResult> { }
     }
@@ -35,6 +53,10 @@
     public sealed class NexumResultEndpointFilter : Microsoft.AspNetCore.Http.IEndpointFilter
     {
         public NexumResultEndpointFilter(System.IServiceProvider serviceProvider) { }
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2055", Justification="MakeGenericType is called with a runtime type from GetType(). Class is annotated " +
+            "[RequiresDynamicCode].")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2070", Justification="GetMethod is called on a type produced by MakeGenericType. Class is annotated [Re" +
+            "quiresDynamicCode].")]
         public System.Threading.Tasks.ValueTask<object?> InvokeAsync(Microsoft.AspNetCore.Http.EndpointFilterInvocationContext context, Microsoft.AspNetCore.Http.EndpointFilterDelegate next) { }
     }
     public static class NexumRouteHandlerBuilderExtensions
