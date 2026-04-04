@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -38,6 +39,10 @@ public static class NexumStreamEndpointRouteBuilderExtensions
     /// Use explicit <c>[FromQuery]</c> attributes or a custom <c>BindAsync</c> method as a workaround.
     /// </para>
     /// </remarks>
+    [RequiresUnreferencedCode("MapGet uses reflection on the delegate and its parameters. Use AOT-safe endpoint registration for NativeAOT.")]
+    [RequiresDynamicCode("MapGet may generate code for the delegate parameters. Use AOT-safe endpoint registration for NativeAOT.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Covered by [RequiresUnreferencedCode] on this method — callers are warned.")]
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Covered by [RequiresDynamicCode] on this method — callers are warned.")]
     public static RouteHandlerBuilder MapNexumStream<TQuery, TResult>(
         this IEndpointRouteBuilder endpoints,
         string pattern)

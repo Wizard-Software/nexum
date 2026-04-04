@@ -87,6 +87,10 @@ internal sealed class ExceptionHandlerResolver(
     /// </remarks>
     [UnconditionalSuppressMessage("Trimming", "IL2055",
         Justification = "commandType comes from runtime DI resolution; handler types are preserved by DI registrations.")]
+    [UnconditionalSuppressMessage("AOT", "IL3050",
+        Justification = "Runtime-only path; handler types preserved by DI registrations. SG Tier 2/3 path eliminates reflection.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2067",
+        Justification = "Runtime-only path; handler types preserved by DI registrations. SG Tier 2/3 path eliminates reflection.")]
     public bool HasCommandExceptionHandlers(Type commandType)
     {
         return s_hasCommandExceptionHandlersCache.GetOrAdd(commandType, static (cmdType, svc) =>
@@ -130,6 +134,10 @@ internal sealed class ExceptionHandlerResolver(
     /// </remarks>
     [UnconditionalSuppressMessage("Trimming", "IL2055",
         Justification = "queryType comes from runtime DI resolution; handler types are preserved by DI registrations.")]
+    [UnconditionalSuppressMessage("AOT", "IL3050",
+        Justification = "Runtime-only path; handler types preserved by DI registrations. SG Tier 2/3 path eliminates reflection.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2067",
+        Justification = "Runtime-only path; handler types preserved by DI registrations. SG Tier 2/3 path eliminates reflection.")]
     public bool HasQueryExceptionHandlers(Type queryType)
     {
         return s_hasQueryExceptionHandlersCache.GetOrAdd(queryType, static (qType, svc) =>
@@ -183,6 +191,8 @@ internal sealed class ExceptionHandlerResolver(
     /// Exception handlers are invoked in order from most specific to least specific (two-axis resolution).
     /// If a handler throws, the exception is logged and ignored (original exception is never masked).
     /// </remarks>
+    [UnconditionalSuppressMessage("Trimming", "IL2072",
+        Justification = "Runtime-only exception handler resolution; types preserved by DI registrations.")]
     public async ValueTask InvokeCommandExceptionHandlersAsync<TResult>(
         ICommand<TResult> command,
         Exception exception,
@@ -215,6 +225,8 @@ internal sealed class ExceptionHandlerResolver(
     /// Exception handlers are invoked in order from most specific to least specific (two-axis resolution).
     /// If a handler throws, the exception is logged and ignored (original exception is never masked).
     /// </remarks>
+    [UnconditionalSuppressMessage("Trimming", "IL2072",
+        Justification = "Runtime-only exception handler resolution; types preserved by DI registrations.")]
     public async ValueTask InvokeQueryExceptionHandlersAsync<TResult>(
         IQuery<TResult> query,
         Exception exception,
@@ -248,6 +260,8 @@ internal sealed class ExceptionHandlerResolver(
     /// If a handler throws, the exception is logged and ignored (original exception is never masked).
     /// This is critical for <see cref="PublishStrategy.FireAndForget"/> where exceptions cannot propagate to the caller.
     /// </remarks>
+    [UnconditionalSuppressMessage("Trimming", "IL2072",
+        Justification = "Runtime-only exception handler resolution; types preserved by DI registrations.")]
     public async ValueTask InvokeNotificationExceptionHandlersAsync<TNotification>(
         TNotification notification,
         Exception exception,
@@ -279,9 +293,11 @@ internal sealed class ExceptionHandlerResolver(
     /// <param name="exception">The exception that was thrown.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2072",
+        Justification = "Runtime-only exception handler resolution; types preserved by DI registrations.")]
     public async ValueTask InvokeNotificationExceptionHandlersAsync(
         INotification notification,
-        Type notificationType,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type notificationType,
         Exception exception,
         CancellationToken ct)
     {
@@ -318,6 +334,8 @@ internal sealed class ExceptionHandlerResolver(
         Justification = "messageTypeHierarchy and exceptionTypeHierarchy contain runtime-discovered types. DI registrations ensure required members are preserved.")]
     [UnconditionalSuppressMessage("Trimming", "IL2067",
         Justification = "handlerType is constructed via MakeGenericType from handlerOpenGeneric (a closed ICommandExceptionHandler<,>/IQueryExceptionHandler<,>/INotificationExceptionHandler<,>) — PublicMethods are preserved by DI registrations.")]
+    [UnconditionalSuppressMessage("AOT", "IL3050",
+        Justification = "Runtime-only path; handler types preserved by DI registrations. SG Tier 2/3 path eliminates reflection.")]
     private async ValueTask InvokeHandlersAsync(
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type handlerOpenGeneric,
         List<Type> messageTypeHierarchy,
@@ -380,6 +398,8 @@ internal sealed class ExceptionHandlerResolver(
     /// <remarks>
     /// If the handler throws an exception, it is logged and ignored (original exception is never masked).
     /// </remarks>
+    [UnconditionalSuppressMessage("Trimming", "IL2070",
+        Justification = "Runtime-only path; handler types preserved by DI registrations. SG Tier 2/3 path eliminates reflection.")]
     private async ValueTask InvokeHandleAsyncAsync(
         object handler,
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)] Type handlerType,

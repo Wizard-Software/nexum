@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace Nexum.Results.FluentValidation.Internal;
@@ -8,7 +9,7 @@ namespace Nexum.Results.FluentValidation.Internal;
 /// Zero allocations on hot path after first call.
 /// Fallback when no <see cref="IResultFailureFactory"/> is registered in DI.
 /// </summary>
-internal static class ReflectionResultFailureFactory<TResult>
+internal static class ReflectionResultFailureFactory<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)] TResult>
 {
     private static readonly Func<NexumError, TResult>? s_factory = BuildFactory();
 

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Nexum.Abstractions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -20,6 +21,10 @@ public static class NexumEndpointRouteBuilderExtensions
     /// <param name="endpoints">The endpoint route builder.</param>
     /// <param name="pattern">The route pattern (e.g., "/api/orders").</param>
     /// <returns>A <see cref="RouteHandlerBuilder"/> for further endpoint configuration.</returns>
+    [RequiresUnreferencedCode("MapPost uses reflection on the delegate and its parameters. Use AOT-safe endpoint registration for NativeAOT.")]
+    [RequiresDynamicCode("MapPost may generate code for the delegate parameters. Use AOT-safe endpoint registration for NativeAOT.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Covered by [RequiresUnreferencedCode] on this method — callers are warned.")]
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Covered by [RequiresDynamicCode] on this method — callers are warned.")]
     public static RouteHandlerBuilder MapNexumCommand<TCommand, TResult>(
         this IEndpointRouteBuilder endpoints,
         string pattern)
@@ -47,6 +52,10 @@ public static class NexumEndpointRouteBuilderExtensions
     /// <param name="endpoints">The endpoint route builder.</param>
     /// <param name="pattern">The route pattern (e.g., "/api/orders/cancel").</param>
     /// <returns>A <see cref="RouteHandlerBuilder"/> for further endpoint configuration.</returns>
+    [RequiresUnreferencedCode("MapPost uses reflection on the delegate and its parameters. Use AOT-safe endpoint registration for NativeAOT.")]
+    [RequiresDynamicCode("MapPost may generate code for the delegate parameters. Use AOT-safe endpoint registration for NativeAOT.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Covered by [RequiresUnreferencedCode] on this method — callers are warned.")]
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Covered by [RequiresDynamicCode] on this method — callers are warned.")]
     public static RouteHandlerBuilder MapNexumCommand<TCommand>(
         this IEndpointRouteBuilder endpoints,
         string pattern)
@@ -84,6 +93,10 @@ public static class NexumEndpointRouteBuilderExtensions
     /// Use explicit <c>[FromQuery]</c> attributes or a custom <c>BindAsync</c> method as a workaround.
     /// </para>
     /// </remarks>
+    [RequiresUnreferencedCode("MapGet uses reflection on the delegate and its parameters. Use AOT-safe endpoint registration for NativeAOT.")]
+    [RequiresDynamicCode("MapGet may generate code for the delegate parameters. Use AOT-safe endpoint registration for NativeAOT.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Covered by [RequiresUnreferencedCode] on this method — callers are warned.")]
+    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Covered by [RequiresDynamicCode] on this method — callers are warned.")]
     public static RouteHandlerBuilder MapNexumQuery<TQuery, TResult>(
         this IEndpointRouteBuilder endpoints,
         string pattern)

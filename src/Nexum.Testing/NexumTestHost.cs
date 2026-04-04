@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Nexum.Abstractions;
 using Nexum.Internal;
 using Microsoft.Extensions.DependencyInjection;
@@ -137,7 +138,7 @@ public sealed class NexumTestHostBuilder
     /// </summary>
     /// <typeparam name="THandler">The concrete handler type (e.g., <c>MyCommandHandler</c>).</typeparam>
     /// <returns>This builder instance for chaining.</returns>
-    public NexumTestHostBuilder AddHandler<THandler>() where THandler : class
+    public NexumTestHostBuilder AddHandler<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>() where THandler : class
     {
         _serviceActions.Add(services => services.AddScoped<THandler>());
         return this;
@@ -149,7 +150,7 @@ public sealed class NexumTestHostBuilder
     /// <typeparam name="TService">The handler interface type (e.g., <c>ICommandHandler&lt;MyCommand, string&gt;</c>).</typeparam>
     /// <typeparam name="TImplementation">The concrete implementation type.</typeparam>
     /// <returns>This builder instance for chaining.</returns>
-    public NexumTestHostBuilder AddHandler<TService, TImplementation>()
+    public NexumTestHostBuilder AddHandler<TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>()
         where TService : class
         where TImplementation : class, TService
     {
@@ -187,7 +188,7 @@ public sealed class NexumTestHostBuilder
     /// </summary>
     /// <typeparam name="TBehavior">The concrete behavior type.</typeparam>
     /// <returns>This builder instance for chaining.</returns>
-    public NexumTestHostBuilder AddBehavior<TBehavior>() where TBehavior : class
+    public NexumTestHostBuilder AddBehavior<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TBehavior>() where TBehavior : class
     {
         _serviceActions.Add(services => services.AddScoped<TBehavior>());
         return this;
@@ -199,7 +200,7 @@ public sealed class NexumTestHostBuilder
     /// </summary>
     /// <param name="behaviorType">The behavior type to register.</param>
     /// <returns>This builder instance for chaining.</returns>
-    public NexumTestHostBuilder AddBehavior(Type behaviorType)
+    public NexumTestHostBuilder AddBehavior([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type behaviorType)
     {
         ArgumentNullException.ThrowIfNull(behaviorType);
         _serviceActions.Add(services => services.AddScoped(behaviorType));

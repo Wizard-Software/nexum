@@ -2,6 +2,12 @@
 {
     public static class NexumStreamEndpointRouteBuilderExtensions
     {
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("MapGet may generate code for the delegate parameters. Use AOT-safe endpoint regis" +
+            "tration for NativeAOT.")]
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("MapGet uses reflection on the delegate and its parameters. Use AOT-safe endpoint " +
+            "registration for NativeAOT.")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("AOT", "IL3050", Justification="Covered by [RequiresDynamicCode] on this method — callers are warned.")]
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026", Justification="Covered by [RequiresUnreferencedCode] on this method — callers are warned.")]
         public static Microsoft.AspNetCore.Builder.RouteHandlerBuilder MapNexumStream<TQuery, TResult>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string pattern)
             where TQuery : Nexum.Abstractions.IStreamQuery<TResult> { }
     }

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Nexum.Abstractions;
@@ -60,6 +61,8 @@ internal sealed class BatchingQueryDispatcher(
         }
     }
 
+    [UnconditionalSuppressMessage("AOT", "IL3050",
+        Justification = "Runtime batch resolution; types preserved by AddNexumBatching() DI registrations.")]
     private static object? CreateBufferAccessor(
         Type queryType, Type resultType,
         NexumBatchingOptions opts, IServiceProvider sp)

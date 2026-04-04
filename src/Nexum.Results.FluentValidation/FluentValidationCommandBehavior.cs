@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using FluentValidation;
 using FluentValidation.Results;
 using Nexum.Abstractions;
@@ -13,7 +14,7 @@ namespace Nexum.Results.FluentValidation;
 /// <typeparam name="TCommand">The command type being validated.</typeparam>
 /// <typeparam name="TResult">The result type of the command.</typeparam>
 [BehaviorOrder(0)]
-public sealed class FluentValidationCommandBehavior<TCommand, TResult>
+public sealed class FluentValidationCommandBehavior<TCommand, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)] TResult>
     : ICommandBehavior<TCommand, TResult>
     where TCommand : ICommand<TResult>
 {

@@ -90,6 +90,8 @@ internal static class AssemblyScanner
     /// <summary>
     /// Gets types from an assembly with graceful handling of <see cref="ReflectionTypeLoadException"/>.
     /// </summary>
+    [UnconditionalSuppressMessage("Trimming", "IL2026",
+        Justification = "Assembly scanning is runtime-only fallback; types preserved by caller's assembly reference.")]
     private static IEnumerable<Type> GetExportedTypes(Assembly assembly)
     {
         try

@@ -42,6 +42,8 @@ public static class NexumBatchingServiceCollectionExtensions
     /// <exception cref="InvalidOperationException">
     /// Thrown when <c>AddNexum()</c> has not been called before <c>AddNexumBatching()</c>.
     /// </exception>
+    [RequiresDynamicCode("MakeGenericType is used at runtime to construct batch buffer types. " +
+        "For NativeAOT, register batch handlers manually before calling this method.")]
     [RequiresUnreferencedCode("Assembly scanning for IBatchQueryHandler uses reflection. " +
         "For NativeAOT, register batch handlers manually before calling this method.")]
     public static IServiceCollection AddNexumBatching(
