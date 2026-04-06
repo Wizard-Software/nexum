@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1775339033339,
+  "lastUpdate": 1775516939267,
   "repoUrl": "https://github.com/asawicki/nexum",
   "entries": {
     "Benchmark": [
@@ -666,6 +666,54 @@ window.BENCHMARK_DATA = {
             "value": 114.27705385287602,
             "unit": "ns",
             "range": "± 0.2610230348849004"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "artur.sawicki@gmail.com",
+            "name": "Artur Sawicki",
+            "username": "asawicki"
+          },
+          "committer": {
+            "email": "artur.sawicki@gmail.com",
+            "name": "asawicki",
+            "username": "asawicki"
+          },
+          "distinct": true,
+          "id": "299f033c13d4c649dcaa181979db78917c0f29b9",
+          "message": "Fix source generator double registration in NuGet package (GitHub #12)\n\nRemove redundant analyzer delivery via buildTransitive .targets file.\nThe NuGet analyzers/dotnet/cs/ convention already registers the generator\nDLL — the .targets file caused Roslyn to load it twice, producing\nduplicate type errors (CS0101, CS0579, CS0433) in consumer projects.",
+          "timestamp": "2026-04-07T01:06:13+02:00",
+          "tree_id": "1ed84d5c18644f35922c9642fac6a8ddd9718651",
+          "url": "https://github.com/asawicki/nexum/commit/299f033c13d4c649dcaa181979db78917c0f29b9"
+        },
+        "date": 1775516938733,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleCommand",
+            "value": 55.954222018520035,
+            "unit": "ns",
+            "range": "± 0.05025929736671866"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3Behaviors",
+            "value": 227.79761877059937,
+            "unit": "ns",
+            "range": "± 0.9443193137419714"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleQuery",
+            "value": 53.730565515848305,
+            "unit": "ns",
+            "range": "± 0.05534281147320915"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3NotificationHandlers_Sequential",
+            "value": 110.77489585601367,
+            "unit": "ns",
+            "range": "± 0.37183456984468205"
           }
         ]
       }
