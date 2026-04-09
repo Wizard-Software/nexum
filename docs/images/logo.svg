@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Nexum">
+  <defs>
+    <linearGradient id="nx-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4c8bf5"/>
+      <stop offset="100%" stop-color="#9b6bff"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="56" ry="56" fill="url(#nx-grad)"/>
+  <g fill="#ffffff">
+    <rect x="66" y="64" width="26" height="128" rx="6" ry="6"/>
+    <rect x="164" y="64" width="26" height="128" rx="6" ry="6"/>
+    <path d="M92 64 L164 192 L190 192 L190 180 L118 64 Z"/>
+  </g>
+</svg>
