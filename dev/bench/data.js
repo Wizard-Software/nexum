@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1775768952141,
+  "lastUpdate": 1775770295152,
   "repoUrl": "https://github.com/Wizard-Software/nexum",
   "entries": {
     "Benchmark": [
@@ -762,6 +762,54 @@ window.BENCHMARK_DATA = {
             "value": 128.51763131068304,
             "unit": "ns",
             "range": "± 0.39375149618320865"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "artur.sawicki@gmail.com",
+            "name": "Artur Sawicki",
+            "username": "asawicki"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8139a5b0fd2587d1981138a90b8cb2e41f6c7044",
+          "message": "Merge pull request #14 from Wizard-Software/fix/release-github-packages-source\n\nFix GitHub Packages push source to Wizard-Software namespace",
+          "timestamp": "2026-04-09T23:28:58+02:00",
+          "tree_id": "132ed8042696d290e02313264670c9f282e2224f",
+          "url": "https://github.com/Wizard-Software/nexum/commit/8139a5b0fd2587d1981138a90b8cb2e41f6c7044"
+        },
+        "date": 1775770294809,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleCommand",
+            "value": 54.610602583204,
+            "unit": "ns",
+            "range": "± 0.14094167326213614"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3Behaviors",
+            "value": 217.8167793750763,
+            "unit": "ns",
+            "range": "± 0.7899882996007785"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleQuery",
+            "value": 45.68859453155444,
+            "unit": "ns",
+            "range": "± 0.07741711937499716"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3NotificationHandlers_Sequential",
+            "value": 107.153999039105,
+            "unit": "ns",
+            "range": "± 0.14118268732880035"
           }
         ]
       }
