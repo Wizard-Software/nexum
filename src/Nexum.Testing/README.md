@@ -1,6 +1,6 @@
 # Nexum.Testing
 
-Testing helpers for [Nexum](https://github.com/asawicki/nexum) CQRS.
+Testing helpers for [Nexum](https://github.com/Wizard-Software/nexum) CQRS.
 
 ## What's inside
 
@@ -24,6 +24,12 @@ await using var host = new NexumTestHost(services =>
 
 var result = await host.DispatchAsync(new CreateOrder("cust-1", 99.99m));
 ```
+
+## Documentation
+
+Full documentation: **[nexum.wizardsoftware.pl](https://nexum.wizardsoftware.pl)**
+
+See [Testing](https://nexum.wizardsoftware.pl/articles/testing.html) for detailed usage.
 
 ## License
 

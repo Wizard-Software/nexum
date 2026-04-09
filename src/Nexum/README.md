@@ -26,6 +26,12 @@ var dispatcher = serviceProvider.GetRequiredService<ICommandDispatcher>();
 var orderId = await dispatcher.DispatchAsync(new CreateOrder("cust-1", 99.99m));
 ```
 
+## Documentation
+
+Full documentation: **[nexum.wizardsoftware.pl](https://nexum.wizardsoftware.pl)**
+
+See [Commands and Queries](https://nexum.wizardsoftware.pl/articles/commands-and-queries.html) and [Architecture](https://nexum.wizardsoftware.pl/articles/architecture.html) for detailed usage and runtime internals.
+
 ## License
 
 MIT

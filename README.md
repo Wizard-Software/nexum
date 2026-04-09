@@ -357,20 +357,23 @@ See [MIGRATION.md](MIGRATION.md) for a complete step-by-step migration guide wit
 
 ## Documentation
 
-Full documentation is available in the [`doc/`](doc/) directory:
+Full documentation: **[nexum.wizardsoftware.pl](https://nexum.wizardsoftware.pl)**
 
-- [**Getting Started**](doc/getting-started.md) -- installation, requirements, and your first command.
-- [**Commands and Queries**](doc/commands-and-queries.md) -- core CQRS types, handlers, and dispatching.
-- [**Notifications**](doc/notifications.md) -- domain events and publish strategies.
-- [**Pipeline Behaviors**](doc/behaviors.md) -- cross-cutting concerns via the Russian doll model.
-- [**Exception Handlers**](doc/exception-handlers.md) -- structured exception handling outside the pipeline.
-- [**Configuration**](doc/configuration.md) -- `NexumOptions`, DI registration, and handler lifetimes.
-- [**OpenTelemetry**](doc/opentelemetry.md) -- built-in distributed tracing and metrics.
-- [**Result Pattern**](doc/results.md) -- explicit error handling with `Result<T>`.
-- [**ASP.NET Core Integration**](doc/aspnetcore.md) -- middleware, endpoint mapping, and Problem Details.
-- [**Batching**](doc/batching.md) -- automatic query batching and deduplication.
-- [**Source Generators**](doc/source-generators.md) -- tiered compile-time acceleration.
-- [**API Reference**](doc/api-reference.md) -- complete public API surface.
+- [**Getting Started**](https://nexum.wizardsoftware.pl/articles/getting-started.html) -- installation and your first command.
+- [**Commands and Queries**](https://nexum.wizardsoftware.pl/articles/commands-and-queries.html) -- core CQRS types, handlers, and dispatchers.
+- [**Notifications**](https://nexum.wizardsoftware.pl/articles/notifications.html) -- domain events and publish strategies.
+- [**Stream Queries**](https://nexum.wizardsoftware.pl/articles/streams.html) -- first-class `IAsyncEnumerable<T>` support.
+- [**Pipeline Behaviors**](https://nexum.wizardsoftware.pl/articles/behaviors.html) -- cross-cutting concerns via the Russian doll model.
+- [**Source Generators**](https://nexum.wizardsoftware.pl/articles/source-generators.html) -- tiered compile-time acceleration.
+- [**Dependency Injection**](https://nexum.wizardsoftware.pl/articles/dependency-injection.html) -- `AddNexum()`, lifetimes, manual registration.
+- [**ASP.NET Core Integration**](https://nexum.wizardsoftware.pl/articles/aspnetcore-integration.html) -- minimal APIs, middleware, Problem Details.
+- [**OpenTelemetry**](https://nexum.wizardsoftware.pl/articles/opentelemetry.html) -- distributed tracing and metrics.
+- [**Result Pattern**](https://nexum.wizardsoftware.pl/articles/results.html) -- explicit error handling with `Result<T, TError>`.
+- [**Batching**](https://nexum.wizardsoftware.pl/articles/batching.html) -- automatic query batching and deduplication.
+- [**Testing**](https://nexum.wizardsoftware.pl/articles/testing.html) -- `NexumTestHost`, fake dispatchers, behavior isolation.
+- [**Migration from MediatR**](https://nexum.wizardsoftware.pl/articles/migration-from-mediatr.html) -- gradual migration guide.
+- [**Architecture**](https://nexum.wizardsoftware.pl/articles/architecture.html) -- internals, thread safety, package graph.
+- [**API Reference**](https://nexum.wizardsoftware.pl/api/) -- complete public API surface.
 
 ## License
 
