@@ -1,0 +1,28 @@
+- name: Getting Started
+  href: getting-started.md
+- name: Commands and Queries
+  href: commands-and-queries.md
+- name: Notifications
+  href: notifications.md
+- name: Stream Queries
+  href: streams.md
+- name: Pipeline Behaviors
+  href: behaviors.md
+- name: Source Generators
+  href: source-generators.md
+- name: Dependency Injection
+  href: dependency-injection.md
+- name: ASP.NET Core Integration
+  href: aspnetcore-integration.md
+- name: OpenTelemetry
+  href: opentelemetry.md
+- name: Result Pattern
+  href: results.md
+- name: Batching
+  href: batching.md
+- name: Testing
+  href: testing.md
+- name: Migration from MediatR
+  href: migration-from-mediatr.md
+- name: Architecture
+  href: architecture.md

@@ -1,6 +1,6 @@
 # Nexum.SourceGenerators
 
-Roslyn Source Generators and analyzers for [Nexum](https://github.com/asawicki/nexum). Compile-time handler registration and diagnostics.
+Roslyn Source Generators and analyzers for [Nexum](https://github.com/Wizard-Software/nexum). Compile-time handler registration and diagnostics.
 
 ## What's inside
 
@@ -17,6 +17,12 @@ dotnet add package Nexum.SourceGenerators
 ```
 
 > **Note:** If you use `Nexum.Extensions.DependencyInjection`, the Source Generator is already bundled — no need to install separately.
+
+## Documentation
+
+Full documentation: **[nexum.wizardsoftware.pl](https://nexum.wizardsoftware.pl)**
+
+See [Source Generators](https://nexum.wizardsoftware.pl/articles/source-generators.html) for the tiered architecture, diagnostics reference, and interceptor setup.
 
 ## License
 

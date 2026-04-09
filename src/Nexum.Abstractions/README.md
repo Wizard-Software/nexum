@@ -1,6 +1,6 @@
 # Nexum.Abstractions
 
-Core CQRS abstractions for the [Nexum](https://github.com/asawicki/nexum) library. Zero dependencies.
+Core CQRS abstractions for the [Nexum](https://github.com/Wizard-Software/nexum) library. Zero dependencies.
 
 ## What's inside
 
@@ -32,6 +32,12 @@ public sealed class CreateOrderHandler : ICommandHandler<CreateOrder, OrderId>
     public ValueTask<OrderId> HandleAsync(CreateOrder command, CancellationToken ct) => ...;
 }
 ```
+
+## Documentation
+
+Full documentation: **[nexum.wizardsoftware.pl](https://nexum.wizardsoftware.pl)**
+
+See [Commands and Queries](https://nexum.wizardsoftware.pl/articles/commands-and-queries.html) for detailed usage of `ICommand`, `IQuery`, `INotification`, and related contracts.
 
 ## License
 
