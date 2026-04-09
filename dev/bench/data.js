@@ -1,6 +1,6 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1775516939267,
-  "repoUrl": "https://github.com/asawicki/nexum",
+  "lastUpdate": 1775768952141,
+  "repoUrl": "https://github.com/Wizard-Software/nexum",
   "entries": {
     "Benchmark": [
       {
@@ -714,6 +714,54 @@ window.BENCHMARK_DATA = {
             "value": 110.77489585601367,
             "unit": "ns",
             "range": "± 0.37183456984468205"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "artur.sawicki@gmail.com",
+            "name": "Artur Sawicki",
+            "username": "asawicki"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4b0c277cc8c29da6381cbfe108f8ba3f517c8ea0",
+          "message": "Merge pull request #13 from Wizard-Software/docs/docfx-bootstrap\n\nAdd DocFX documentation site + point READMEs at nexum.wizardsoftware.pl",
+          "timestamp": "2026-04-09T23:06:59+02:00",
+          "tree_id": "ed0c8e1eb67969d1aa2110717f7c290883403af6",
+          "url": "https://github.com/Wizard-Software/nexum/commit/4b0c277cc8c29da6381cbfe108f8ba3f517c8ea0"
+        },
+        "date": 1775768951762,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleCommand",
+            "value": 65.02456000021526,
+            "unit": "ns",
+            "range": "± 0.20031318572764945"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3Behaviors",
+            "value": 233.26472089971816,
+            "unit": "ns",
+            "range": "± 2.6708366483641526"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_SimpleQuery",
+            "value": 49.25952997574439,
+            "unit": "ns",
+            "range": "± 0.056520051841849134"
+          },
+          {
+            "name": "Nexum.Benchmarks.NexumRegressionBenchmarks.Nexum_3NotificationHandlers_Sequential",
+            "value": 128.51763131068304,
+            "unit": "ns",
+            "range": "± 0.39375149618320865"
           }
         ]
       }
